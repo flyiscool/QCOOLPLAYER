@@ -24,6 +24,41 @@ extern "C"
 
 
 
+
+//Refresh Event
+#define SFM_REFRESH_EVENT  (SDL_USEREVENT + 1)
+#define SFM_BREAK_EVENT  (SDL_USEREVENT + 2)
+
+int thread_exit = 0;
+int thread_pause = 0;
+
+
+int sfp_refresh_thread(void* opaque)
+{
+	thread_exit = 0;
+	thread_pause = 0;
+
+	while (!thread_exit) {
+		if (!thread_pause) {
+			SDL_Event event;
+			event.type = SFM_REFRESH_EVENT;
+			SDL_PushEvent(&event);
+		}
+		SDL_Delay(33);
+	}
+
+	thread_exit = 0;
+	thread_pause = 0;
+
+	//Break
+	SDL_Event event;
+	event.type = SFM_BREAK_EVENT;
+	SDL_PushEvent(&event);
+
+	return 0;
+}
+
+
 void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 {
 	QString fileName_H264 = pCPThreadDecoderFfmpeg->getFileName();
@@ -31,7 +66,6 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	char* pfileName_H264 = temp.data();
 
 	av_register_all();
-
 	avformat_network_init();
 
 	AVFormatContext* pFormatCtx = avformat_alloc_context();
@@ -112,24 +146,75 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	SDL_Rect sdlRect;
 	sdlRect.x = 0;
 	sdlRect.y = 0;
-	sdlRect.w = screen_w;
-	sdlRect.h = screen_h;
+	sdlRect.w = screen_w/2;
+	sdlRect.h = screen_h/2;
 
 	AVPacket* packet = (AVPacket*)av_malloc(sizeof(AVPacket));
 
-	//SDL_Thread* video_tid = SDL_CreateThread(sfp_refresh_thread, NULL, NULL);
+	SDL_Thread* video_tid = SDL_CreateThread(sfp_refresh_thread, NULL, NULL);
 
 
 
 
+	SDL_Event event;
 
 	while (1){
-		//qDebug() << "threadCPDecoderFfmpeg_main test !!" << endl;
-		//qDebug() << fileName_H264 << endl;
-		
+
+		//Wait
+		SDL_WaitEvent(&event);
+		if (event.type == SFM_REFRESH_EVENT) {
+			while (1) {
+				if (av_read_frame(pFormatCtx, packet) < 0)
+					thread_exit = 1;
+
+				if (packet->stream_index == videoindex)
+					break;
+			}
+
+			int got_picture;
+			int ret = avcodec_decode_video2(pCodecCtx, pFrame, &got_picture, packet);
+			if (ret < 0) {
+				qDebug() << "Decode Error." << endl;
+				return;
+			}
+			if (got_picture) {
+				sws_scale(img_convert_ctx, (const unsigned char* const*)pFrame->data, pFrame->linesize, 0, pCodecCtx->height, pFrameYUV->data, pFrameYUV->linesize);
+				//SDL---------------------------
+				SDL_UpdateTexture(sdlTexture, NULL, pFrameYUV->data[0], pFrameYUV->linesize[0]);
+				SDL_RenderClear(sdlRenderer);
+				//SDL_RenderCopy( sdlRenderer, sdlTexture, &sdlRect, &sdlRect );  
+				SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+				SDL_RenderPresent(sdlRenderer);
+				//SDL End-----------------------
+			}
+			av_free_packet(packet);
+		}
+		else if (event.type == SDL_KEYDOWN) {
+			//Pause
+			if (event.key.keysym.sym == SDLK_SPACE)
+				thread_pause = !thread_pause;
+		}
+		else if (event.type == SDL_QUIT) {
+			thread_exit = 1;
+		}
+		else if (event.type == SFM_BREAK_EVENT) {
+			break;
+		}
+
+
+
 
 		if (!(pCPThreadDecoderFfmpeg->IsRun()))
 		{
+			sws_freeContext(img_convert_ctx);
+
+			SDL_Quit();
+
+			av_frame_free(&pFrameYUV);
+			av_frame_free(&pFrame);
+			avcodec_close(pCodecCtx);
+			avformat_close_input(&pFormatCtx);
+
 			break;
 		}	
 	}
