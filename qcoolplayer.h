@@ -12,4 +12,8 @@ public:
 
 private:
 	Ui::QCoolPlayerClass ui;
+	
+
+public slots:
+	void slot_Exit(void);
 };
