@@ -9,6 +9,7 @@ class QCoolPlayer : public QMainWindow
 
 public:
 	QCoolPlayer(QWidget *parent = Q_NULLPTR);
+	~QCoolPlayer(void);
 
 private:
 	Ui::QCoolPlayerClass ui;
@@ -16,4 +17,5 @@ private:
 
 public slots:
 	void slot_Exit(void);
+	void slot_LoadFile(void);
 };
