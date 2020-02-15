@@ -39,7 +39,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>E:\CoolPlayer\software\QCoolPlayer\SDL2-2.0.10\lib\x64;E:\CoolPlayer\software\QCoolPlayer\ffmpeg-4.2.2\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>E:\CoolPlayer\software\QCoolPlayer\src;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
@@ -68,13 +68,14 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <AdditionalIncludeDirectories>E:\CoolPlayer\software\QCoolPlayer\SDL2-2.0.10\include;E:\CoolPlayer\software\QCoolPlayer\ffmpeg-4.2.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)SDL2-2.0.10\include;$(ProjectDir)ffmpeg-4.2.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\SDL2-2.0.10\lib\x64;$(ProjectDir)\SDL2-2.0.10\include;$(ProjectDir)\ffmpeg-4.2.2\lib;$(ProjectDir)\ffmpeg-4.2.2\include;$(ProjectDir)\ffmpeg-4.2.2\dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)SDL2-2.0.10\lib\x64;$(ProjectDir)ffmpeg-4.2.2\lib;$(ProjectDir)ffmpeg-4.2.2\dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(ProjectDir)ffmpeg-4.2.2\lib\avcodec.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avdevice.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avfilter.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avformat.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avutil.lib;$(ProjectDir)ffmpeg-4.2.2\lib\postproc.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swresample.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,6 +100,8 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="qcoolplayer.cpp" />
+    <ClCompile Include="src\cpDecoderFfmpeg.cpp" />
+    <ClCompile Include="src\cpThread.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -106,6 +109,124 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="qcoolplayer.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\ac3_parser.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\adts_parser.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\avcodec.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\avdct.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\avfft.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\d3d11va.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\dirac.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\dv_profile.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\dxva2.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\jni.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\mediacodec.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\qsv.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\vaapi.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\vdpau.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\version.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\videotoolbox.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\vorbis_parser.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\xvmc.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavdevice\avdevice.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavdevice\version.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavfilter\avfilter.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavfilter\buffersink.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavfilter\buffersrc.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavfilter\version.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavformat\avformat.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavformat\avio.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavformat\version.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\adler32.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\aes.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\aes_ctr.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\attributes.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\audio_fifo.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\avassert.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\avconfig.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\avstring.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\avutil.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\base64.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\blowfish.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\bprint.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\bswap.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\buffer.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\camellia.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\cast5.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\channel_layout.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\common.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\cpu.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\crc.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\des.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\dict.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\display.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\downmix_info.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\encryption_info.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\error.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\eval.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\ffversion.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\fifo.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\file.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\frame.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hash.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hdr_dynamic_metadata.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hmac.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext_cuda.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext_d3d11va.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext_drm.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext_dxva2.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext_mediacodec.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext_qsv.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext_vaapi.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext_vdpau.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\hwcontext_videotoolbox.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\imgutils.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\intfloat.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\intreadwrite.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\lfg.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\log.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\lzo.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\macros.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\mastering_display_metadata.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\mathematics.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\md5.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\mem.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\motion_vector.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\murmur3.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\opt.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\parseutils.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\pixdesc.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\pixelutils.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\pixfmt.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\random_seed.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\rational.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\rc4.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\replaygain.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\ripemd.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\samplefmt.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\sha.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\sha512.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\spherical.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\stereo3d.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\tea.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\threadmessage.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\time.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\timecode.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\timestamp.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\tree.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\twofish.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\tx.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\version.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libavutil\xtea.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libpostproc\postprocess.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libpostproc\version.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libswresample\swresample.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libswresample\version.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libswscale\swscale.h" />
+    <ClInclude Include="ffmpeg-4.2.2\include\libswscale\version.h" />
+    <ClInclude Include="src\cpDecoderFfmpeg.h" />
+    <QtMoc Include="src\cpThread.h" />
+    <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -116,6 +237,47 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="QCoolPlayer.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="QCoolPlayer.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="ffmpeg-4.2.2\dll\avcodec-58.dll" />
+    <None Include="ffmpeg-4.2.2\dll\avdevice-58.dll" />
+    <None Include="ffmpeg-4.2.2\dll\avfilter-7.dll" />
+    <None Include="ffmpeg-4.2.2\dll\avformat-58.dll" />
+    <None Include="ffmpeg-4.2.2\dll\avutil-56.dll" />
+    <None Include="ffmpeg-4.2.2\dll\postproc-55.dll" />
+    <None Include="ffmpeg-4.2.2\dll\swresample-3.dll" />
+    <None Include="ffmpeg-4.2.2\dll\swscale-5.dll" />
+    <None Include="ffmpeg-4.2.2\lib\avcodec-58.def" />
+    <None Include="ffmpeg-4.2.2\lib\avdevice-58.def" />
+    <None Include="ffmpeg-4.2.2\lib\avfilter-7.def" />
+    <None Include="ffmpeg-4.2.2\lib\avformat-58.def" />
+    <None Include="ffmpeg-4.2.2\lib\avutil-56.def" />
+    <None Include="ffmpeg-4.2.2\lib\postproc-55.def" />
+    <None Include="ffmpeg-4.2.2\lib\swresample-3.def" />
+    <None Include="ffmpeg-4.2.2\lib\swscale-5.def" />
+    <None Include="QCoolPlayer.aps" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="ffmpeg-4.2.2\lib\avcodec.lib" />
+    <Library Include="ffmpeg-4.2.2\lib\avdevice.lib" />
+    <Library Include="ffmpeg-4.2.2\lib\avfilter.lib" />
+    <Library Include="ffmpeg-4.2.2\lib\avformat.lib" />
+    <Library Include="ffmpeg-4.2.2\lib\avutil.lib" />
+    <Library Include="ffmpeg-4.2.2\lib\libavcodec.dll.a" />
+    <Library Include="ffmpeg-4.2.2\lib\libavdevice.dll.a" />
+    <Library Include="ffmpeg-4.2.2\lib\libavfilter.dll.a" />
+    <Library Include="ffmpeg-4.2.2\lib\libavformat.dll.a" />
+    <Library Include="ffmpeg-4.2.2\lib\libavutil.dll.a" />
+    <Library Include="ffmpeg-4.2.2\lib\libpostproc.dll.a" />
+    <Library Include="ffmpeg-4.2.2\lib\libswresample.dll.a" />
+    <Library Include="ffmpeg-4.2.2\lib\libswscale.dll.a" />
+    <Library Include="ffmpeg-4.2.2\lib\postproc.lib" />
+    <Library Include="ffmpeg-4.2.2\lib\swresample.lib" />
+    <Library Include="ffmpeg-4.2.2\lib\swscale.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

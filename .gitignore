@@ -1,5 +1,9 @@
 x64/
 .vs/
+*.h264
+*.264
+
+
 # C++ objects and libs
 *.slo
 *.lo

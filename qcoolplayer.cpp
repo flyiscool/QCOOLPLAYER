@@ -23,31 +23,37 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
     // Maximized the window.
     showMaximized();
 	
-	//slot
-	connect(ui.actionExit_0, SIGNAL(triggered()), this, SLOT(slot_Exit()));	
+	//slot  
+	// add the action Exit();
+	connect(ui.actionExit_0, SIGNAL(triggered()), this, SLOT(slotExit()));	
 
-	connect(ui.actionOpenFile_H264, SIGNAL(triggered()), this, SLOT(slot_LoadFile()));
+	// add the action LoadFile();
+	connect(ui.actionOpenFile_H264, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
 
 }
 
 QCoolPlayer::~QCoolPlayer(void)
 {
-	slot_Exit();
+	slotExit();
 }
 
-void QCoolPlayer::slot_Exit(void)
+void QCoolPlayer::slotExit(void)
 {
+	thDecoderFfmpeg.stopImmediately();
+	thDecoderFfmpeg.wait();
 	close();
 }
 
-void QCoolPlayer::slot_LoadFile(void)
+void QCoolPlayer::slotLoadFile(void)
 {
-	QString fileName_H264 = QFileDialog::getOpenFileName(this,
-		tr("Open file H.264"), ".", tr("Files (*.264 *.h264)"));
+	//QString fileName_H264 = QFileDialog::getOpenFileName(this,
+	//	tr("Open file H.264"), ".", tr("Files (*.264 *.h264)"));
 
-	qDebug() << fileName_H264 << endl;
-
+	QString fileName_H264 = "Avatar_1920x1080@30Hz_3Mbps.264";
 	
+	thDecoderFfmpeg.fileNameH264 = fileName_H264;
+
+	thDecoderFfmpeg.start();
 
 }
 

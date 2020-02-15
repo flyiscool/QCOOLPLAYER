@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_qcoolplayer.h"
+#include "cpThread.h"
 
 class QCoolPlayer : public QMainWindow
 {
@@ -13,9 +14,12 @@ public:
 
 private:
 	Ui::QCoolPlayerClass ui;
-	
+	CPThreadDecoderFfmpeg	thDecoderFfmpeg;
+	CPThreadSdl2Show		thSdl2Show;
+	CPThreadUsbMonitor		thUsbMonitor;
+	CPThreadUsbVedio1		thUsbVedio1;
 
 public slots:
-	void slot_Exit(void);
-	void slot_LoadFile(void);
+	void slotExit(void);
+	void slotLoadFile(void);
 };
