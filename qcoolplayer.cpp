@@ -20,12 +20,8 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	vedioWidget = new RenderArea(this);
 	ui.verticalLayout->addWidget(vedioWidget);
 
-	
-
     // Maximized the window.
 	showMaximized();
-
-	vedioWidget->showFullScreen();
 
 	// set the background
 	vedioWidget->setFrame(QImage("./picture/LOGO3-red.png"));
@@ -80,11 +76,11 @@ void QCoolPlayer::slotLoadFile(void)
 	//QString fileName_H264 = QFileDialog::getOpenFileName(this,
 	//	tr("Open file H.264"), ".", tr("Files (*.264 *.h264)"));
 
-	QString fileName_H264 = "bigbuckbunny_480x272.h264";
+	//QString fileName_H264 = "bigbuckbunny_480x272.h264";
+	QString fileName_H264 = "Avatar_1920x1080@30Hz_3Mbps.264";
 	
 	thDecoderFfmpeg.fileNameH264 = fileName_H264;
 
-	
 	thDecoderFfmpeg.start();
 
 }
