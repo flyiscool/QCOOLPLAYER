@@ -19,9 +19,13 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	
 	vedioWidget = new RenderArea(this);
 	ui.verticalLayout->addWidget(vedioWidget);
-
+	
     // Maximized the window.
 	showMaximized();
+
+	//ui.verticalLayout->removeWidget(vedioWidget);
+	//vedioWidget->setWindowFlags(Qt::Window);
+	//vedioWidget->showFullScreen();
 
 	// set the background
 	vedioWidget->setFrame(QImage("./picture/LOGO3-red.png"));
@@ -47,8 +51,14 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	connect(ui.action50Fps, SIGNAL(triggered()), this, SLOT(slotSelect50FPS()));
 	connect(ui.action60Fps, SIGNAL(triggered()), this, SLOT(slotSelect60FPS()));
 
+	// add the action full screen
+	connect(ui.actionFullScreen_F11, SIGNAL(triggered()), this, SLOT(slotSetVedioFullScreen()));
+
 	// add the Show fucntion
 	connect(&thDecoderFfmpeg, SIGNAL(signalGetOneFrameToShow(QImage)), this, SLOT(slotShowTheNewImage(QImage)));
+
+	// add the keyPress on vedioWidget
+	connect(vedioWidget, SIGNAL(signalKeyPress(QKeyEvent*)), this, SLOT(slotSubWidgetKeyPress(QKeyEvent*)));
 
 	/*  fuction */
 	// start the USB device Monitor
@@ -139,4 +149,46 @@ void QCoolPlayer::slotSelect60FPS(void)
 	clearFrameRate();
 	ui.action60Fps->setChecked(true);
 	thDecoderFfmpeg.frameRate = 60;
+}
+
+void QCoolPlayer::slotSubWidgetKeyPress(QKeyEvent* ev)
+{
+	keyPressEvent(ev);
+}
+
+void QCoolPlayer::slotSetVedioFullScreen(void)
+{
+	setVedioFullScreen();
+}
+
+
+
+void QCoolPlayer::setVedioFullScreen(void)
+{
+	ui.verticalLayout->removeWidget(vedioWidget);
+	vedioWidget->setWindowFlags(Qt::Window);
+	vedioWidget->showFullScreen();
+}
+
+void QCoolPlayer::setVedioNormalScreen(void)
+{
+	ui.verticalLayout->addWidget(vedioWidget);
+	vedioWidget->setWindowFlags(Qt::SubWindow);
+	vedioWidget->showNormal();
+}
+
+void QCoolPlayer::keyPressEvent(QKeyEvent* ev)
+{
+
+	if (ev->key() == Qt::Key_F11)
+	{
+		setVedioFullScreen();
+		return;
+	}
+	else if (ev->key() == Qt::Key_Escape)
+	{
+		setVedioNormalScreen();
+	}
+
+	QWidget::keyPressEvent(ev);
 }

@@ -35,6 +35,11 @@ void RenderArea::paintEvent(QPaintEvent* /* event */)
 	painter.drawImage(QPoint(x, y), img);
 }
 
+void RenderArea::keyPressEvent(QKeyEvent* ev)
+{
+	emit signalKeyPress(ev);
+}
+
 void RenderArea::setFrame(QImage frame)
 {
 	m_fImage = frame;

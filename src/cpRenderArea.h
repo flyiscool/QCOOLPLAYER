@@ -19,6 +19,10 @@ public slots:
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
+	void keyPressEvent(QKeyEvent* ev);
+
+signals:
+	void signalKeyPress(QKeyEvent* ev);
 
 private:
 

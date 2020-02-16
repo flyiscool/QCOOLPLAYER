@@ -54,6 +54,7 @@
     <addaction name="action50Fps"/>
     <addaction name="action60Fps"/>
     <addaction name="separator"/>
+    <addaction name="actionFullScreen_F11"/>
    </widget>
    <widget class="QMenu" name="menuStatus_2">
     <property name="title">
@@ -201,6 +202,11 @@
    </property>
    <property name="text">
     <string>GroundMode</string>
+   </property>
+  </action>
+  <action name="actionFullScreen_F11">
+   <property name="text">
+    <string>FullScreen（F11）</string>
    </property>
   </action>
  </widget>

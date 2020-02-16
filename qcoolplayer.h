@@ -12,6 +12,9 @@ class QCoolPlayer : public QMainWindow
 public:
 	QCoolPlayer(QWidget *parent = Q_NULLPTR);
 	~QCoolPlayer(void);
+	void setVedioFullScreen(void);
+	void setVedioNormalScreen(void);
+
 
 private:
 	Ui::QCoolPlayerClass ui;
@@ -21,7 +24,7 @@ private:
 	CPThreadUsbVedio1		thUsbVedio1;
 	RenderArea*				vedioWidget;
 	void clearFrameRate(void);
-
+	
 public slots:
 	void slotExit(void);
 	void slotLoadFile(void);
@@ -31,4 +34,11 @@ public slots:
 	void slotSelect30FPS(void);
 	void slotSelect50FPS(void);
 	void slotSelect60FPS(void);
+	void slotSubWidgetKeyPress(QKeyEvent* ev);
+	void slotSetVedioFullScreen(void);
+
+protected:
+
+	virtual void keyPressEvent(QKeyEvent* ev);
+
 };
