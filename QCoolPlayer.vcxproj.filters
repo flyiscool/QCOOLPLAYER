@@ -40,6 +40,15 @@
     <ClCompile Include="src\cpThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\cpUsbMonitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cpRenderArea.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cpUsbFifo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -396,12 +405,21 @@
     <ClInclude Include="ffmpeg-4.2.2\include\libswscale\version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\cpUsbMonitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpUsbFifo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="qcoolplayer.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="src\cpThread.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="src\cpRenderArea.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

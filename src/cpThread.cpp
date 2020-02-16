@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "cpThread.h"
 #include "cpDecoderFfmpeg.h"
+#include "cpUsbMonitor.h"
 
 void CPThreadDecoderFfmpeg::run()
 {
@@ -18,7 +19,7 @@ void CPThreadSdl2Show::run()
 void CPThreadUsbMonitor::run()
 {
 	m_isCanRun = true;
-	//threadCPUsbMonitor_main(this);
+	threadCPUsbMonitor_main(this);
 }
 
 void CPThreadUsbVedio1::run()

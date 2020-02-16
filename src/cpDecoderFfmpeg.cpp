@@ -8,7 +8,9 @@
 #include <time.h>
 #include "cpThread.h"
 
+#include <stdio.h>
 
+#include "cpUsbFifo.h"
 
 extern "C"
 {
@@ -23,56 +25,62 @@ extern "C"
 
 
 
+static FILE* g_fpVedio = NULL;
 
 
-//Refresh Event
-#define SFM_REFRESH_EVENT  (SDL_USEREVENT + 1)
-#define SFM_BREAK_EVENT  (SDL_USEREVENT + 2)
-
-int thread_exit = 0;
-int thread_pause = 0;
-
-
-int sfp_refresh_thread(void* opaque)
+//Callback
+static int readBuffCallBack(void* opaque, uint8_t* buf, int buf_size) 
 {
-	thread_exit = 0;
-	thread_pause = 0;
 
-	while (!thread_exit) {
-		if (!thread_pause) {
-			SDL_Event event;
-			event.type = SFM_REFRESH_EVENT;
-			SDL_PushEvent(&event);
-		}
-		SDL_Delay(33);
+	int true_size = fread(buf, 1, buf_size, g_fpVedio);
+	
+	if (feof(g_fpVedio)) {
+		rewind(g_fpVedio);
 	}
-
-	thread_exit = 0;
-	thread_pause = 0;
-
-	//Break
-	SDL_Event event;
-	event.type = SFM_BREAK_EVENT;
-	SDL_PushEvent(&event);
-
-	return 0;
+	
+	return true_size;
 }
 
 
+
+#define sizeReadBuff 32768
+#define OUTPUT_YUV420P 0
+
 void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 {
-	QString fileName_H264 = pCPThreadDecoderFfmpeg->getFileName();
-	QByteArray temp = fileName_H264.toLatin1(); 
-	char* pfileName_H264 = temp.data();
-
+	// init ffmpeg
 	av_register_all();
 	avformat_network_init();
 
+	// open file
+	QString fileName_H264 = pCPThreadDecoderFfmpeg->getFileName();
+	QByteArray temp = fileName_H264.toLatin1();
+	char* pFileName_H264 = temp.data();
+
+	g_fpVedio = fopen(pFileName_H264, "rb+");
+	if (!g_fpVedio) {
+		qDebug() << "Can't open video file!" << endl;
+		return;
+	}
+
 	AVFormatContext* pFormatCtx = avformat_alloc_context();
 
-	QString runPath = QCoreApplication::applicationDirPath();
-	
-	if (avformat_open_input(&pFormatCtx, pfileName_H264, NULL, NULL) != 0) {
+	//Init AVIOContext    read_buffer is a callback function
+	unsigned char* aviobuffer = (unsigned char*)av_malloc(sizeReadBuff);
+
+	// Set the call back
+	AVIOContext* avio = avio_alloc_context(aviobuffer, sizeReadBuff, 0, NULL, readBuffCallBack, NULL, NULL);
+
+	// Set buff to be the input for decoder
+	pFormatCtx->pb = avio;
+
+
+	//if (avformat_open_input(&pFormatCtx, pFileName_H264, NULL, NULL) != 0) {
+	//	qDebug() << "Couldn't open input stream." << endl;
+	//	return;
+	//}
+
+	if (avformat_open_input(&pFormatCtx, NULL, NULL, NULL) != 0) {
 		qDebug() << "Couldn't open input stream." << endl;
 		return;
 	}
@@ -96,6 +104,10 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	}
 
 	AVCodecContext* pCodecCtx = pFormatCtx->streams[videoindex]->codec;
+	pCodecCtx->thread_count = 4;
+	pCodecCtx->thread_type = FF_THREAD_SLICE; // Use of FF_THREAD_FRAME will increase decoding delay by one frame per thread¡£
+	pCodecCtx->ticks_per_frame = 2;
+	pCodecCtx->bits_per_coded_sample = 1024;
 
 	AVCodec* pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
 
@@ -109,114 +121,70 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	}
 
 	AVFrame* pFrame = av_frame_alloc();
-	AVFrame* pFrameYUV = av_frame_alloc();
+	AVFrame* pFrameRGB = av_frame_alloc();
 
-	unsigned char* out_buffer = (unsigned char*)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height, 1));
-	av_image_fill_arrays(pFrameYUV->data, pFrameYUV->linesize, out_buffer,
-		AV_PIX_FMT_YUV420P, pCodecCtx->width, pCodecCtx->height, 1);
-	
-	av_dump_format(pFormatCtx, 0, pfileName_H264, 0);
+	unsigned char* rgb_buffer = (unsigned char*)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_RGB32, pCodecCtx->width, pCodecCtx->height, 1));
+	av_image_fill_arrays(pFrameRGB->data, pFrameRGB->linesize, rgb_buffer,
+		AV_PIX_FMT_RGB32, pCodecCtx->width, pCodecCtx->height, 1);
 
-	struct SwsContext* img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
-		pCodecCtx->width, pCodecCtx->height, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
-	
-
-
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER)) {
-		qDebug() << "Could not initialize SDL -" << SDL_GetError() <<endl;
-		return;
-	}
-
-	//SDL 2.0 Support for multiple windows
-	int screen_w = pCodecCtx->width;
-	int screen_h = pCodecCtx->height;
-	SDL_Window* screen = SDL_CreateWindow("Simplest ffmpeg player's Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		screen_w, screen_h, SDL_WINDOW_OPENGL);
-
-	if (!screen) {
-		qDebug() << "SDL: could not create window - exiting:%s" << SDL_GetError() << endl;
-		return;
-	}
-
-	SDL_Renderer* sdlRenderer = SDL_CreateRenderer(screen, -1, 0);
-	//IYUV: Y + U + V  (3 planes)
-	//YV12: Y + V + U  (3 planes)
-	SDL_Texture* sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, pCodecCtx->width, pCodecCtx->height);
-	
-	SDL_Rect sdlRect;
-	sdlRect.x = 0;
-	sdlRect.y = 0;
-	sdlRect.w = screen_w/2;
-	sdlRect.h = screen_h/2;
 
 	AVPacket* packet = (AVPacket*)av_malloc(sizeof(AVPacket));
 
-	SDL_Thread* video_tid = SDL_CreateThread(sfp_refresh_thread, NULL, NULL);
+	struct SwsContext* img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
+		pCodecCtx->width, pCodecCtx->height, AV_PIX_FMT_RGB32, SWS_BICUBIC, NULL, NULL, NULL);
 
+	qDebug() << "1------" << endl;
+	int cnt_debug = 0;
+	int got_picture;
+	while (1) {
+		cnt_debug++;
 
+		if (av_read_frame(pFormatCtx, packet) < 0) {
+			pCPThreadDecoderFfmpeg->msleep(100);
+			continue;
+		}
 
-
-	SDL_Event event;
-
-	while (1){
-
-		//Wait
-		SDL_WaitEvent(&event);
-		if (event.type == SFM_REFRESH_EVENT) {
-			while (1) {
-				if (av_read_frame(pFormatCtx, packet) < 0)
-					thread_exit = 1;
-
-				if (packet->stream_index == videoindex)
-					break;
-			}
-
-			int got_picture;
+		if (packet->stream_index == videoindex) {
+			
 			int ret = avcodec_decode_video2(pCodecCtx, pFrame, &got_picture, packet);
 			if (ret < 0) {
-				qDebug() << "Decode Error." << endl;
-				return;
+				av_packet_unref(packet);
+				continue;
 			}
+
 			if (got_picture) {
-				sws_scale(img_convert_ctx, (const unsigned char* const*)pFrame->data, pFrame->linesize, 0, pCodecCtx->height, pFrameYUV->data, pFrameYUV->linesize);
-				//SDL---------------------------
-				SDL_UpdateTexture(sdlTexture, NULL, pFrameYUV->data[0], pFrameYUV->linesize[0]);
-				SDL_RenderClear(sdlRenderer);
-				//SDL_RenderCopy( sdlRenderer, sdlTexture, &sdlRect, &sdlRect );  
-				SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
-				SDL_RenderPresent(sdlRenderer);
-				//SDL End-----------------------
+				sws_scale(img_convert_ctx,
+					(const unsigned char* const*)pFrame->data,
+					pFrame->linesize, 0, pCodecCtx->height,
+					pFrameRGB->data, pFrameRGB->linesize);
+
+				QImage tmpImg((uchar*)rgb_buffer, pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
+				QImage image = tmpImg.copy(); //copy the image to show
+
+				if (fileName_H264 != NULL)
+				{
+					pCPThreadDecoderFfmpeg->msleep(1000 / pCPThreadDecoderFfmpeg->frameRate);
+				}
+
+				emit pCPThreadDecoderFfmpeg->signalGetOneFrameToShow(image);
+				av_packet_unref(packet);
 			}
-			av_free_packet(packet);
-		}
-		else if (event.type == SDL_KEYDOWN) {
-			//Pause
-			if (event.key.keysym.sym == SDLK_SPACE)
-				thread_pause = !thread_pause;
-		}
-		else if (event.type == SDL_QUIT) {
-			thread_exit = 1;
-		}
-		else if (event.type == SFM_BREAK_EVENT) {
-			break;
 		}
 
-
-
-
-		if (!(pCPThreadDecoderFfmpeg->IsRun()))
-		{
+		if (!(pCPThreadDecoderFfmpeg->IsRun())) {
 			sws_freeContext(img_convert_ctx);
 
-			SDL_Quit();
-
-			av_frame_free(&pFrameYUV);
+			av_frame_free(&pFrameRGB);
 			av_frame_free(&pFrame);
+			av_packet_free(&packet);
+
+			avio_context_free(&avio);
+
 			avcodec_close(pCodecCtx);
 			avformat_close_input(&pFormatCtx);
 
 			break;
-		}	
+		}
 	}
 
 }

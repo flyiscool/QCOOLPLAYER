@@ -29,7 +29,6 @@ public slots:
 public:
 	QMutex m_lock;
 	bool m_isCanRun;
-	//int cam_lr;
 };
 
 
@@ -40,6 +39,8 @@ class CPThreadDecoderFfmpeg : public CPThread
 public:
 	virtual void run();
 	QString fileNameH264;
+	int frameRate;
+
 
 public slots:
 	QString getFileName(void)
@@ -47,6 +48,8 @@ public slots:
 		return fileNameH264;
 	}
 
+signals:
+	void signalGetOneFrameToShow(QImage);
 };
 
 
