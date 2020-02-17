@@ -132,6 +132,18 @@ void QCoolPlayer::slotShowTheNewImage(void)
 
 	vedioWidget.setFrame(*img);
 
+	QString tmode;
+	if (modePlayer == SkyTxMode)
+	{
+		tmode = "SkyTxMode";
+	}
+	else
+	{
+		tmode = "GndRxMode";
+	}
+
+	ui.statusBar->showMessage(tmode + "  ""Fps:" + QString::number(vedioWidget.frameRateToShow, 10));
+
 	delete img;
 }
 
@@ -148,7 +160,6 @@ void QCoolPlayer::clearFrameRate(void)
 
 void QCoolPlayer::slotSelect24FPS(void)
 {
-	qDebug() << "24" << endl;
 	clearFrameRate();
 	ui.action24Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 24;
@@ -158,7 +169,6 @@ void QCoolPlayer::slotSelect24FPS(void)
 
 void QCoolPlayer::slotSelect25FPS(void)
 {
-	qDebug() << "25" << endl;
 	clearFrameRate();
 	ui.action25Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 25;
@@ -167,8 +177,6 @@ void QCoolPlayer::slotSelect25FPS(void)
 
 void QCoolPlayer::slotSelect30FPS(void)
 {
-	qDebug() << "30" << endl;
-
 	clearFrameRate();
 	ui.action30Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 30;
@@ -177,8 +185,6 @@ void QCoolPlayer::slotSelect30FPS(void)
 
 void QCoolPlayer::slotSelect50FPS(void)
 {
-	qDebug() << "50" << endl;
-
 	clearFrameRate();
 	ui.action50Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 50;
@@ -187,8 +193,6 @@ void QCoolPlayer::slotSelect50FPS(void)
 
 void QCoolPlayer::slotSelect60FPS(void)
 {
-	qDebug() << "60" << endl;
-
 	clearFrameRate();
 	ui.action60Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 60;
