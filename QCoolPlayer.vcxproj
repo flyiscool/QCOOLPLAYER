@@ -112,6 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="src\cpRenderArea.h" />
+    <ClInclude Include="src\cpStructData.h" />
     <ClInclude Include="src\cpThreadSafeQueue.h" />
     <ClInclude Include="src\cpUsbFifo.h" />
     <ClInclude Include="src\cpUsbMonitor.h" />

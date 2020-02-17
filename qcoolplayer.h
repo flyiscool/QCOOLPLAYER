@@ -5,6 +5,10 @@
 #include "cpThread.h"
 #include "cpRenderArea.h"
 
+#include "cpStructData.h"
+
+
+
 class QCoolPlayer : public QMainWindow
 {
 	Q_OBJECT
@@ -15,7 +19,6 @@ public:
 	void setVedioFullScreen(void);
 	void setVedioNormalScreen(void);
 
-
 private:
 	Ui::QCoolPlayerClass ui;
 	CPThreadDecoderFfmpeg	thDecoderFfmpeg;
@@ -25,7 +28,7 @@ private:
 	RenderArea				vedioWidget;
 	QTimer					timerFreshImage;
 	void clearFrameRate(void);
-	
+	RxTxMode	modePlayer;
 public slots:
 	void slotExit(void);
 	void slotLoadFile(void);
@@ -38,6 +41,9 @@ public slots:
 	void slotSubWidgetKeyPress(QKeyEvent* ev);
 	void slotSetVedioFullScreen(void);
 	void slotStopPlayVedio(void);
+	void slotSelectSkyTxMode(void);
+	void slotSelectGndRxMode(void);
+
 protected:
 
 	virtual void keyPressEvent(QKeyEvent* ev);

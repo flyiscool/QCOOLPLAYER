@@ -42,6 +42,12 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	// set the time  tol : 1ms
 	timerFreshImage.setTimerType(Qt::TimerType::PreciseTimer);
 
+	// set default mode
+	modePlayer = SkyTxMode;
+
+
+
+
 
 	/*  slot */
 	// add the action Exit();
@@ -70,10 +76,14 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	// add the stopPlayVedio action
 	connect(ui.actionStop, SIGNAL(triggered()), this, SLOT(slotStopPlayVedio()));
 
+	// add the Sky Gnd mode select
+	connect(ui.actionSkyMode, SIGNAL(triggered()), this, SLOT(slotSelectSkyTxMode()));
+	connect(ui.actionGroundMode, SIGNAL(triggered()), this, SLOT(slotSelectGndRxMode()));
+
 
 	/*  fuction */
 	// start the USB device Monitor
-	thUsbMonitor.start();
+	//thUsbMonitor.start();
 
 }
 
@@ -108,6 +118,9 @@ void QCoolPlayer::slotLoadFile(void)
 	ui.actionOpenFile_H264->setEnabled(false);
 	ui.actionStop->setEnabled(true);
 
+	ui.actionGroundMode->setEnabled(false);
+	ui.actionSkyMode->setEnabled(false);
+
 	thDecoderFfmpeg.start();
 }
 
@@ -121,10 +134,6 @@ void QCoolPlayer::slotShowTheNewImage(void)
 
 	delete img;
 }
-
-
-
-
 
 void QCoolPlayer::clearFrameRate(void)
 {
@@ -205,11 +214,32 @@ void QCoolPlayer::slotStopPlayVedio(void)
 
 	ui.actionStop->setEnabled(false);
 	ui.actionOpenFile_H264->setEnabled(true);
+	ui.actionGroundMode->setEnabled(true);
+	ui.actionSkyMode->setEnabled(true);
 
 	vedioWidget.setFrame(QImage("./picture/LOGO3-red.png"));
 
 }
 
+void QCoolPlayer::slotSelectSkyTxMode(void)
+{
+	ui.actionGroundMode->setChecked(false);
+	ui.actionSkyMode->setChecked(true);
+	
+	ui.actionOpenFile_H264->setEnabled(true);
+
+	modePlayer = SkyTxMode;
+}
+
+void QCoolPlayer::slotSelectGndRxMode(void)
+{
+	ui.actionGroundMode->setChecked(true);
+	ui.actionSkyMode->setChecked(false);
+
+	ui.actionOpenFile_H264->setEnabled(false);
+
+	modePlayer = GndRxMode;
+}
 
 
 void QCoolPlayer::setVedioFullScreen(void)

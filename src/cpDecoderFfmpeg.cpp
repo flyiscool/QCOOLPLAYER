@@ -136,14 +136,28 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	struct SwsContext* img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
 		pCodecCtx->width, pCodecCtx->height, AV_PIX_FMT_RGB32, SWS_BICUBIC, NULL, NULL, NULL);
 
-	int cnt_debug = 0;
+
 	int got_picture;
 
 	threadsafe_queue<QImage*>* pList;
 	pList = &gListToShow;
 	
 	while (1) {
-		cnt_debug++;
+
+		if (!(pCPThreadDecoderFfmpeg->IsRun())) {
+			sws_freeContext(img_convert_ctx);
+
+			av_frame_free(&pFrameRGB);
+			av_frame_free(&pFrame);
+			av_packet_free(&packet);
+
+			avio_context_free(&avio);
+
+			avcodec_close(pCodecCtx);
+			avformat_close_input(&pFormatCtx);
+
+			break;
+		}
 
 		if (pList->size() >= MAX_FRAME_TO_SLEEP)
 		{
@@ -185,20 +199,7 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 			}
 		}
 
-		if (!(pCPThreadDecoderFfmpeg->IsRun())) {
-			sws_freeContext(img_convert_ctx);
 
-			av_frame_free(&pFrameRGB);
-			av_frame_free(&pFrame);
-			av_packet_free(&packet);
-
-			avio_context_free(&avio);
-
-			avcodec_close(pCodecCtx);
-			avformat_close_input(&pFormatCtx);
-
-			break;
-		}
 	}
 
 }
