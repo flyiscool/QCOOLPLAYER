@@ -39,8 +39,6 @@ class CPThreadDecoderFfmpeg : public CPThread
 public:
 	virtual void run();
 	QString fileNameH264;
-	int frameRate;
-
 
 public slots:
 	QString getFileName(void)

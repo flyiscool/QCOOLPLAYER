@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-#include "cpUsbFifo.h"
+#include "cpThreadSafeQueue.h"
 
 extern "C"
 {
@@ -26,7 +26,10 @@ extern "C"
 
 
 static FILE* g_fpVedio = NULL;
+extern threadsafe_queue<QImage*> gListToShow;
 
+#define MAX_FRAME_TO_SLEEP	5
+#define MAX_FRAME_IN_LIST_TO_SHOW	30
 
 //Callback
 static int readBuffCallBack(void* opaque, uint8_t* buf, int buf_size) 
@@ -43,7 +46,7 @@ static int readBuffCallBack(void* opaque, uint8_t* buf, int buf_size)
 
 
 
-#define sizeReadBuff 32768
+#define SIZE_READ_BUFF 32768
 #define OUTPUT_YUV420P 0
 
 void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
@@ -66,10 +69,10 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	AVFormatContext* pFormatCtx = avformat_alloc_context();
 
 	//Init AVIOContext    read_buffer is a callback function
-	unsigned char* aviobuffer = (unsigned char*)av_malloc(sizeReadBuff);
+	unsigned char* aviobuffer = (unsigned char*)av_malloc(SIZE_READ_BUFF);
 
 	// Set the call back
-	AVIOContext* avio = avio_alloc_context(aviobuffer, sizeReadBuff, 0, NULL, readBuffCallBack, NULL, NULL);
+	AVIOContext* avio = avio_alloc_context(aviobuffer, SIZE_READ_BUFF, 0, NULL, readBuffCallBack, NULL, NULL);
 
 	// Set buff to be the input for decoder
 	pFormatCtx->pb = avio;
@@ -133,11 +136,20 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	struct SwsContext* img_convert_ctx = sws_getContext(pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
 		pCodecCtx->width, pCodecCtx->height, AV_PIX_FMT_RGB32, SWS_BICUBIC, NULL, NULL, NULL);
 
-	qDebug() << "1------" << endl;
 	int cnt_debug = 0;
 	int got_picture;
+
+	threadsafe_queue<QImage*>* pList;
+	pList = &gListToShow;
+	
 	while (1) {
 		cnt_debug++;
+
+		if (pList->size() >= MAX_FRAME_TO_SLEEP)
+		{
+			pCPThreadDecoderFfmpeg->msleep(50);
+			continue;
+		}
 
 		if (av_read_frame(pFormatCtx, packet) < 0) {
 			pCPThreadDecoderFfmpeg->msleep(100);
@@ -158,16 +170,18 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 					pFrame->linesize, 0, pCodecCtx->height,
 					pFrameRGB->data, pFrameRGB->linesize);
 
-				QImage tmpImg((uchar*)rgb_buffer, pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
-				QImage image = tmpImg.copy(); //copy the image to show
+				//QImage tmpImg((uchar*)rgb_buffer, pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
+				
+				QImage* tmpImg = new QImage((uchar*)rgb_buffer, pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
 
-				if (fileName_H264 != NULL)
+				QImage* tmpPackegGiveUp = NULL;
+				int numret = pList->push(tmpImg, tmpPackegGiveUp, MAX_FRAME_IN_LIST_TO_SHOW);
+				if (tmpPackegGiveUp != NULL)
 				{
-					pCPThreadDecoderFfmpeg->msleep(1000 / pCPThreadDecoderFfmpeg->frameRate);
+					delete tmpPackegGiveUp;
 				}
-
-				emit pCPThreadDecoderFfmpeg->signalGetOneFrameToShow(image);
 				av_packet_unref(packet);
+			
 			}
 		}
 

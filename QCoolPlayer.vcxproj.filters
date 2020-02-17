@@ -411,6 +411,9 @@
     <ClInclude Include="src\cpUsbFifo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\cpThreadSafeQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="qcoolplayer.h">

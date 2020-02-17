@@ -22,13 +22,14 @@ private:
 	CPThreadSdl2Show		thSdl2Show;
 	CPThreadUsbMonitor		thUsbMonitor;
 	CPThreadUsbVedio1		thUsbVedio1;
-	RenderArea*				vedioWidget;
+	RenderArea				vedioWidget;
+	QTimer					timerFreshImage;
 	void clearFrameRate(void);
 	
 public slots:
 	void slotExit(void);
 	void slotLoadFile(void);
-	void slotShowTheNewImage(QImage img);
+	void slotShowTheNewImage(void);
 	void slotSelect24FPS(void);
 	void slotSelect25FPS(void);
 	void slotSelect30FPS(void);
@@ -36,7 +37,7 @@ public slots:
 	void slotSelect60FPS(void);
 	void slotSubWidgetKeyPress(QKeyEvent* ev);
 	void slotSetVedioFullScreen(void);
-
+	void slotStopPlayVedio(void);
 protected:
 
 	virtual void keyPressEvent(QKeyEvent* ev);

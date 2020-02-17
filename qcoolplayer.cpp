@@ -9,16 +9,18 @@
 #include <QDebug>
 #include <QPainter>
 #include <QFileDialog>
+#include <Qtimer>
 
+#include "cpThreadSafeQueue.h"
 
+threadsafe_queue<QImage*> gListToShow;
 
 QCoolPlayer::QCoolPlayer(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
 	
-	vedioWidget = new RenderArea(this);
-	ui.verticalLayout->addWidget(vedioWidget);
+	ui.verticalLayout->addWidget(&vedioWidget);
 	
     // Maximized the window.
 	showMaximized();
@@ -28,14 +30,18 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	//vedioWidget->showFullScreen();
 
 	// set the background
-	vedioWidget->setFrame(QImage("./picture/LOGO3-red.png"));
+	vedioWidget.setFrame(QImage("./picture/LOGO3-red.png"));
 
 	// open the DX 
 	this->setAttribute(Qt::WA_PaintOnScreen, true);
-	vedioWidget->setAttribute(Qt::WA_PaintOnScreen, true);
+	vedioWidget.setAttribute(Qt::WA_PaintOnScreen, true);
 
 	// set the default data
-	thDecoderFfmpeg.frameRate = 30;  // FPS
+	vedioWidget.frameRateToShow = 30;  // FPS
+
+	// set the time  tol : 1ms
+	timerFreshImage.setTimerType(Qt::TimerType::PreciseTimer);
+
 
 	/*  slot */
 	// add the action Exit();
@@ -55,10 +61,15 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	connect(ui.actionFullScreen_F11, SIGNAL(triggered()), this, SLOT(slotSetVedioFullScreen()));
 
 	// add the Show fucntion
-	connect(&thDecoderFfmpeg, SIGNAL(signalGetOneFrameToShow(QImage)), this, SLOT(slotShowTheNewImage(QImage)));
-
+	connect(&timerFreshImage, SIGNAL(timeout()), this, SLOT(slotShowTheNewImage()));
+	
 	// add the keyPress on vedioWidget
-	connect(vedioWidget, SIGNAL(signalKeyPress(QKeyEvent*)), this, SLOT(slotSubWidgetKeyPress(QKeyEvent*)));
+	connect(&vedioWidget, SIGNAL(signalKeyPress(QKeyEvent*)), this, SLOT(slotSubWidgetKeyPress(QKeyEvent*)));
+
+
+	// add the stopPlayVedio action
+	connect(ui.actionStop, SIGNAL(triggered()), this, SLOT(slotStopPlayVedio()));
+
 
 	/*  fuction */
 	// start the USB device Monitor
@@ -81,6 +92,7 @@ void QCoolPlayer::slotExit(void)
 	close();
 }
 
+
 void QCoolPlayer::slotLoadFile(void)
 {
 	//QString fileName_H264 = QFileDialog::getOpenFileName(this,
@@ -91,13 +103,23 @@ void QCoolPlayer::slotLoadFile(void)
 	
 	thDecoderFfmpeg.fileNameH264 = fileName_H264;
 
-	thDecoderFfmpeg.start();
+	timerFreshImage.start(1000 / vedioWidget.frameRateToShow);
 
+	ui.actionOpenFile_H264->setEnabled(false);
+	ui.actionStop->setEnabled(true);
+
+	thDecoderFfmpeg.start();
 }
 
-void QCoolPlayer::slotShowTheNewImage(QImage img)
+void QCoolPlayer::slotShowTheNewImage(void)
 {
-	vedioWidget->setFrame(img);
+	QImage* img = new QImage;
+	gListToShow.try_front(img);
+	gListToShow.try_pop(img);
+
+	vedioWidget.setFrame(*img);
+
+	delete img;
 }
 
 
@@ -117,38 +139,51 @@ void QCoolPlayer::clearFrameRate(void)
 
 void QCoolPlayer::slotSelect24FPS(void)
 {
+	qDebug() << "24" << endl;
 	clearFrameRate();
 	ui.action24Fps->setChecked(true);
-	thDecoderFfmpeg.frameRate = 24;
+	vedioWidget.frameRateToShow = 24;
+	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
 
 void QCoolPlayer::slotSelect25FPS(void)
 {
+	qDebug() << "25" << endl;
 	clearFrameRate();
 	ui.action25Fps->setChecked(true);
-	thDecoderFfmpeg.frameRate = 25;
+	vedioWidget.frameRateToShow = 25;
+	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
 void QCoolPlayer::slotSelect30FPS(void)
 {
+	qDebug() << "30" << endl;
+
 	clearFrameRate();
 	ui.action30Fps->setChecked(true);
-	thDecoderFfmpeg.frameRate = 30;
+	vedioWidget.frameRateToShow = 30;
+	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
 void QCoolPlayer::slotSelect50FPS(void)
 {
+	qDebug() << "50" << endl;
+
 	clearFrameRate();
 	ui.action50Fps->setChecked(true);
-	thDecoderFfmpeg.frameRate = 50;
+	vedioWidget.frameRateToShow = 50;
+	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
 void QCoolPlayer::slotSelect60FPS(void)
 {
+	qDebug() << "60" << endl;
+
 	clearFrameRate();
 	ui.action60Fps->setChecked(true);
-	thDecoderFfmpeg.frameRate = 60;
+	vedioWidget.frameRateToShow = 60;
+	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
 void QCoolPlayer::slotSubWidgetKeyPress(QKeyEvent* ev)
@@ -161,20 +196,34 @@ void QCoolPlayer::slotSetVedioFullScreen(void)
 	setVedioFullScreen();
 }
 
+void QCoolPlayer::slotStopPlayVedio(void)
+{
+	thDecoderFfmpeg.stopImmediately();
+	thDecoderFfmpeg.wait();
+
+	timerFreshImage.stop();
+
+	ui.actionStop->setEnabled(false);
+	ui.actionOpenFile_H264->setEnabled(true);
+
+	vedioWidget.setFrame(QImage("./picture/LOGO3-red.png"));
+
+}
+
 
 
 void QCoolPlayer::setVedioFullScreen(void)
 {
-	ui.verticalLayout->removeWidget(vedioWidget);
-	vedioWidget->setWindowFlags(Qt::Window);
-	vedioWidget->showFullScreen();
+	ui.verticalLayout->removeWidget(&vedioWidget);
+	vedioWidget.setWindowFlags(Qt::Window);
+	vedioWidget.showFullScreen();
 }
 
 void QCoolPlayer::setVedioNormalScreen(void)
 {
-	ui.verticalLayout->addWidget(vedioWidget);
-	vedioWidget->setWindowFlags(Qt::SubWindow);
-	vedioWidget->showNormal();
+	ui.verticalLayout->addWidget(&vedioWidget);
+	vedioWidget.setWindowFlags(Qt::SubWindow);
+	vedioWidget.showNormal();
 }
 
 void QCoolPlayer::keyPressEvent(QKeyEvent* ev)

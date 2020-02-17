@@ -20,8 +20,6 @@ void RenderArea::paintEvent(QPaintEvent* /* event */)
 
 	if (m_fImage.size().width() <= 0) return;
 
-
-
 	QImage img = m_fImage.scaled(this->size(), Qt::KeepAspectRatio);
 	//QImage img = m_fImage;
 	//QImage img = m_fImage.scaled(screenRect.size(), Qt::KeepAspectRatio);

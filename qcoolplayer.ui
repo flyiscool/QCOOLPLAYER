@@ -20,6 +20,7 @@
     </item>
    </layout>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -39,13 +40,20 @@
     <addaction name="actionSkyMode"/>
     <addaction name="actionGroundMode"/>
    </widget>
+   <widget class="QMenu" name="menuStatus_2">
+    <property name="title">
+     <string>Status</string>
+    </property>
+    <addaction name="actionNo_device"/>
+   </widget>
    <widget class="QMenu" name="menuStatus">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="title">
      <string>Ctrl</string>
     </property>
     <addaction name="separator"/>
-    <addaction name="actionPlay"/>
-    <addaction name="actionPause"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
     <addaction name="action24Fps"/>
@@ -56,17 +64,10 @@
     <addaction name="separator"/>
     <addaction name="actionFullScreen_F11"/>
    </widget>
-   <widget class="QMenu" name="menuStatus_2">
-    <property name="title">
-     <string>Status</string>
-    </property>
-    <addaction name="actionNo_device"/>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuStatus"/>
    <addaction name="menuStatus_2"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpenFile_H264">
    <property name="checkable">
     <bool>false</bool>
@@ -111,6 +112,9 @@
    </property>
   </action>
   <action name="actionStop">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Stop</string>
    </property>
