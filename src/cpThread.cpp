@@ -1,8 +1,10 @@
 
 #include "stdafx.h"
 #include "cpThread.h"
+
 #include "cpDecoderFfmpeg.h"
 #include "cpUsbMonitor.h"
+
 
 void CPThreadDecoderFfmpeg::run()
 {

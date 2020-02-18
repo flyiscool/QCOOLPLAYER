@@ -13,6 +13,8 @@
 
 #include "cpThreadSafeQueue.h"
 
+#include "cpUsbMonitor.h"
+
 threadsafe_queue<QImage*> gListToShow;
 
 QCoolPlayer::QCoolPlayer(QWidget *parent)
@@ -46,9 +48,6 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	modePlayer = SkyTxMode;
 
 
-
-
-
 	/*  slot */
 	// add the action Exit();
 	connect(ui.actionExit_0, SIGNAL(triggered()), this, SLOT(slotExit()));	
@@ -80,10 +79,9 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	connect(ui.actionSkyMode, SIGNAL(triggered()), this, SLOT(slotSelectSkyTxMode()));
 	connect(ui.actionGroundMode, SIGNAL(triggered()), this, SLOT(slotSelectGndRxMode()));
 
-
-	/*  fuction */
-	// start the USB device Monitor
-	//thUsbMonitor.start();
+	// add the usbdevice detect
+	
+	connect(ui.actionConnectGround, SIGNAL(triggered()), this, SLOT(slotStartOrStopUsbMonitor()));
 
 }
 
@@ -243,6 +241,22 @@ void QCoolPlayer::slotSelectGndRxMode(void)
 	ui.actionOpenFile_H264->setEnabled(false);
 
 	modePlayer = GndRxMode;
+}
+
+void QCoolPlayer::slotStartOrStopUsbMonitor(void)
+{
+
+	qDebug() << "test" << ui.actionConnectGround->isChecked() <<endl;
+	if (ui.actionConnectGround->isChecked() == true)
+	{
+		thUsbMonitor.start();
+	}
+	else
+	{
+		thUsbMonitor.stopImmediately();
+		thUsbMonitor.wait();
+	}
+	// start the USB device Monitor
 }
 
 

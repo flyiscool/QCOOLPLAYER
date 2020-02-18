@@ -10,6 +10,11 @@
 #include <qDebug>
 
 
+#include "cpStructData.h"
+#include "libusb.h"
+
+
+
 class CPThread : public QThread
 {
 	Q_OBJECT
@@ -66,9 +71,12 @@ class CPThreadUsbMonitor : public CPThread
 	Q_OBJECT
 public:
 	virtual void run();
+	libusb_device** devsList;
+	libusb_context* ctx;
+	libusb_device_handle* devGround;
+	libusb_device_handle* devSky;
 };
 
-//
 class CPThreadUsbVedio1 : public CPThread
 {
 	Q_OBJECT

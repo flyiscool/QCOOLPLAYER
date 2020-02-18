@@ -47,7 +47,7 @@
     <property name="title">
      <string>Status</string>
     </property>
-    <addaction name="actionNo_device"/>
+    <addaction name="actionConnectGround"/>
    </widget>
    <widget class="QMenu" name="menuStatus">
     <property name="enabled">
@@ -91,41 +91,12 @@
     <string>Exit</string>
    </property>
   </action>
-  <action name="actionSky">
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Sky mode</string>
-   </property>
-  </action>
-  <action name="actionGnd">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Gnd mode</string>
-   </property>
-  </action>
-  <action name="actionPause">
-   <property name="text">
-    <string>Pause</string>
-   </property>
-  </action>
   <action name="actionStop">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
     <string>Stop</string>
-   </property>
-  </action>
-  <action name="actionPlay">
-   <property name="text">
-    <string>Play</string>
    </property>
   </action>
   <action name="action25Fps">
@@ -180,19 +151,6 @@
     <string>50Fps</string>
    </property>
   </action>
-  <action name="actionDevice_Connected">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Device-Coolfly-f1</string>
-   </property>
-  </action>
-  <action name="actionNo_device">
-   <property name="text">
-    <string>No device</string>
-   </property>
-  </action>
   <action name="actionSkyMode">
    <property name="checkable">
     <bool>true</bool>
@@ -218,6 +176,14 @@
   <action name="actionFullScreen_F11">
    <property name="text">
     <string>FullScreen（F11）</string>
+   </property>
+  </action>
+  <action name="actionConnectGround">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>ConnectGround</string>
    </property>
   </action>
  </widget>

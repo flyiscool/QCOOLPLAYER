@@ -417,6 +417,9 @@
     <ClInclude Include="src\cpStructData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="libusb-1.0.22\include\libusb-1.0\libusb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="qcoolplayer.h">
@@ -444,6 +447,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="QCoolPlayer.ico" />
+    <Image Include="picture\background.png" />
+    <Image Include="picture\LOGO3-red.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="QCoolPlayer.aps" />
@@ -498,5 +503,6 @@
     <Library Include="ffmpeg-4.2.2\lib\postproc.lib" />
     <Library Include="ffmpeg-4.2.2\lib\swresample.lib" />
     <Library Include="ffmpeg-4.2.2\lib\swscale.lib" />
+    <Library Include="libusb-1.0.22\MS64\static\libusb-1.0.lib" />
   </ItemGroup>
 </Project>

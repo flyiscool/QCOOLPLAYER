@@ -43,6 +43,8 @@ public slots:
 	void slotStopPlayVedio(void);
 	void slotSelectSkyTxMode(void);
 	void slotSelectGndRxMode(void);
+	void slotStartOrStopUsbMonitor(void);
+
 
 protected:
 
