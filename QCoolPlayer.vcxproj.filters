@@ -46,9 +46,6 @@
     <ClCompile Include="src\cpRenderArea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\cpUsbFifo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -406,9 +403,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\cpUsbMonitor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cpUsbFifo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\cpThreadSafeQueue.h">

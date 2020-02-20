@@ -20,67 +20,219 @@ extern "C"
 #include "libavutil/imgutils.h"
 };
 
+#define SIZE_READ_BUFF 32768
+#define MAX_FRAME_TO_SLEEP	5
+#define MAX_FRAME_IN_LIST_TO_SHOW	30
 
 
 static FILE* g_fpVedio = NULL;
 extern threadsafe_queue<QImage*> gListToShow;
+extern threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
 
-#define MAX_FRAME_TO_SLEEP	5
-#define MAX_FRAME_IN_LIST_TO_SHOW	30
+static	CPThreadDecoderFfmpeg* pthDecoderFfmpeg;
 
 //Callback
-static int readBuffCallBack(void* opaque, uint8_t* buf, int buf_size) 
+static int readFileCallBack(void* opaque, uint8_t* buf, int buf_size) 
 {
-
 	int true_size = fread(buf, 1, buf_size, g_fpVedio);
 	
 	if (feof(g_fpVedio)) {
 		rewind(g_fpVedio);
 	}
-	
+
 	return true_size;
+}
+
+//Callback
+static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
+{
+	UsbBuffPackage* pBuff;
+	int length = 0;
+	int need = buf_size;
+
+	static int cnt = 0;
+	static int pktID = 0;
+	int surplus = 0;
+	
+	do {
+
+
+
+		while (gListUsbBulkList_Vedio1.empty())
+		{
+			pthDecoderFfmpeg->msleep(5);
+
+			if (!(pthDecoderFfmpeg->IsRun())) {
+				return length;
+			}
+		}
+
+		gListUsbBulkList_Vedio1.try_front(pBuff);
+		
+		if (pktID != pBuff->packageID)  // package has been lost£¬so give up
+		{
+			cnt = 0;
+		}
+
+		if (cnt > 0)  // have half package ; pBuff->length must <= buf_size
+		{	 
+			surplus = pBuff->length - cnt; 
+			memcpy(buf + length, &pBuff->data[cnt], surplus);
+			length = length + surplus;
+			buf_size = buf_size - surplus;
+			
+			cnt = 0;
+			
+			gListUsbBulkList_Vedio1.try_pop(pBuff);
+			delete pBuff;
+		}
+		else
+		{
+			if (pBuff->length > buf_size)
+			{
+				//qDebug() << "buf_size" << buf_size << "pBuff->length" << pBuff->length << "pBuff->packageID" << pBuff->packageID << endl;
+				cnt = buf_size;
+				pktID = pBuff->packageID;
+				memcpy(buf + length, pBuff->data, buf_size);
+				length = buf_size + length;
+				buf_size = 0;
+				// don't pop ,wait for next 
+			}
+			else
+			{
+				cnt = 0;
+				memcpy(buf + length, pBuff->data, pBuff->length);
+				length = pBuff->length + length;		
+				buf_size = buf_size - pBuff->length;
+
+				gListUsbBulkList_Vedio1.try_pop(pBuff);
+				delete pBuff;
+			}
+		}
+
+		
+	} while (buf_size > 0);
+
+	return length;
 }
 
 
 
-#define SIZE_READ_BUFF 32768
-#define OUTPUT_YUV420P 0
 
 void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 {
+	CPThreadDecoderFfmpeg* pCPthThis = pCPThreadDecoderFfmpeg;
+	pthDecoderFfmpeg = pCPThreadDecoderFfmpeg;
 	// init ffmpeg
 	av_register_all();
 	avformat_network_init();
 
-	// open file
-	QString fileName_H264 = pCPThreadDecoderFfmpeg->getFileName();
-	QByteArray temp = fileName_H264.toLatin1();
-	char* pFileName_H264 = temp.data();
+	if (pCPthThis->playMode == SkyTxMode)  // sky play files and tx
+	{
+		// open file
+		QString fileName_H264 = pCPthThis->getFileName();
+		QByteArray temp = fileName_H264.toLatin1();
+		char* pFileName_H264 = temp.data();
 
-	g_fpVedio = fopen(pFileName_H264, "rb+");
-	if (!g_fpVedio) {
-		qDebug() << "Can't open video file!" << endl;
-		return;
+		g_fpVedio = fopen(pFileName_H264, "rb+");
+		if (!g_fpVedio) {
+			qDebug() << "Can't open video file!" << endl;
+			return;
+		}
 	}
+	else  // pCPthThis->playMode == GndRxMode;
+	{
+		; // do nothing;
+	}
+
 
 	AVFormatContext* pFormatCtx = avformat_alloc_context();
 
-	//Init AVIOContext    read_buffer is a callback function
-	unsigned char* aviobuffer = (unsigned char*)av_malloc(SIZE_READ_BUFF);
+	char errorbuf[1024] = { 0 };
+	bool openAgainFlag = true;
+	AVIOContext* avio;
+	unsigned char* aviobuffer;
+	AVInputFormat* pAVInputFmt = NULL;
 
-	// Set the call back
-	AVIOContext* avio = avio_alloc_context(aviobuffer, SIZE_READ_BUFF, 0, NULL, readBuffCallBack, NULL, NULL);
+	do {
 
-	// Set buff to be the input for decoder
-	pFormatCtx->pb = avio;
+		if (!(pCPthThis->IsRun())) {
+
+			if (avio) {
+				av_freep(&avio->buffer);
+				av_freep(&avio);
+			}
+			avformat_close_input(&pFormatCtx);
+			break;
+		}
+
+		//Init AVIOContext    read_buffer is a callback function
+		aviobuffer = (unsigned char*)av_malloc(SIZE_READ_BUFF);
+
+	
+		if (pCPthThis->playMode == SkyTxMode)
+		{
+			// Set the call back
+			avio = avio_alloc_context(aviobuffer, SIZE_READ_BUFF, 0, NULL, &readFileCallBack, NULL, NULL);
+		}
+		else
+		{
+			avio = avio_alloc_context(aviobuffer, SIZE_READ_BUFF, 0, NULL, &readUsbVedio1ListCallBack, NULL, NULL);
+		}
+
+		// Set buff to be the input for decoder
+		pFormatCtx->pb = avio;
+
+		int r = av_probe_input_buffer(pFormatCtx->pb, &pAVInputFmt, "", NULL, 0, 0);
+		if (r == 0)	// success and out
+		{
+			openAgainFlag = false;
+		}
+		else if (r > 0)
+		{
+			openAgainFlag = false;
+		}
+		else
+		{
+			av_strerror(r, errorbuf, sizeof(errorbuf));
+			qDebug() << "av_probe_input_buffer failed : " << r << QString(QLatin1String(errorbuf)) << endl;
+
+			if (r == -1094995529) //  Invalid data found when processing input
+			{
+				qDebug() << "try1" << endl;
+				openAgainFlag = true;
+				if (avio) {
+					av_freep(&avio->buffer);
+					av_freep(&avio);
+				}
+				pCPthThis->msleep(10);
+				continue;
+			}
+			else if (r == -572662307)
+			{
+				qDebug() << "try2" << endl;
+				openAgainFlag = true;
+				if (avio) {
+					av_freep(&avio->buffer);
+					av_freep(&avio);
+				}
+				pCPthThis->msleep(10);
+				continue;
+			}
+			else
+			{
+				qDebug() << "unknow error so return" << endl;
+				return;
+			}
+		}
+	} while (openAgainFlag);
 
 
-	//if (avformat_open_input(&pFormatCtx, pFileName_H264, NULL, NULL) != 0) {
-	//	qDebug() << "Couldn't open input stream." << endl;
-	//	return;
-	//}
-
-	if (avformat_open_input(&pFormatCtx, NULL, NULL, NULL) != 0) {
+	
+	int r = avformat_open_input(&pFormatCtx, NULL, pAVInputFmt, NULL);
+	//int r = avformat_open_input(&pFormatCtx, NULL, NULL, NULL);
+	if(r != 0)
+	{
 		qDebug() << "Couldn't open input stream." << endl;
 		return;
 	}
@@ -141,7 +293,9 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	
 	while (1) {
 
-		if (!(pCPThreadDecoderFfmpeg->IsRun())) {
+		
+
+		if (!(pCPthThis->IsRun())) {
 			sws_freeContext(img_convert_ctx);
 
 			av_frame_free(&pFrameRGB);
@@ -156,14 +310,20 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 			break;
 		}
 
-		if (pList->size() >= MAX_FRAME_TO_SLEEP)
+
+
+		if (pCPthThis->playMode == SkyTxMode)
 		{
-			pCPThreadDecoderFfmpeg->msleep(50);
-			continue;
+
+			if (pList->size() >= MAX_FRAME_TO_SLEEP)
+			{
+				pCPthThis->msleep(50);
+				continue;
+			}
 		}
 
 		if (av_read_frame(pFormatCtx, packet) < 0) {
-			pCPThreadDecoderFfmpeg->msleep(100);
+			pCPthThis->msleep(100);
 			continue;
 		}
 
@@ -186,7 +346,24 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 				QImage* tmpImg = new QImage((uchar*)rgb_buffer, pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
 
 				QImage* tmpPackegGiveUp = NULL;
-				int numret = pList->push(tmpImg, tmpPackegGiveUp, MAX_FRAME_IN_LIST_TO_SHOW);
+
+				int maxFrameInListToShow;
+				if (pCPthThis->playFrameRate == 120)
+				{
+					maxFrameInListToShow = 1;  // just show the last picture;
+				}
+				else
+				{
+					maxFrameInListToShow = 3;
+				}
+				if (pCPthThis->playMode == SkyTxMode)
+				{
+					int numret = pList->push(tmpImg, tmpPackegGiveUp, MAX_FRAME_IN_LIST_TO_SHOW);
+				}
+				else
+				{
+					int numret = pList->push(tmpImg, tmpPackegGiveUp, maxFrameInListToShow);
+				}
 				if (tmpPackegGiveUp != NULL)
 				{
 					delete tmpPackegGiveUp;

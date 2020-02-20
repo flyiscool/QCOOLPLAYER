@@ -10,12 +10,17 @@
 #include <QPainter>
 #include <QFileDialog>
 #include <Qtimer>
-
+#include <QMetaType>
 #include "cpThreadSafeQueue.h"
 
 #include "cpUsbMonitor.h"
 
+
+
+
 threadsafe_queue<QImage*> gListToShow;
+threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
+
 
 QCoolPlayer::QCoolPlayer(QWidget *parent)
 	: QMainWindow(parent)
@@ -39,13 +44,14 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	vedioWidget.setAttribute(Qt::WA_PaintOnScreen, true);
 
 	// set the default data
-	vedioWidget.frameRateToShow = 30;  // FPS
+	vedioWidget.frameRateToShow = 120;  // Socalled realtime FPS
+	thDecoderFfmpeg.playFrameRate = 120;
 
 	// set the time  tol : 1ms
 	timerFreshImage.setTimerType(Qt::TimerType::PreciseTimer);
 
 	// set default mode
-	modePlayer = SkyTxMode;
+	modePlayer = GndRxMode;
 
 
 	/*  slot */
@@ -61,6 +67,8 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	connect(ui.action30Fps, SIGNAL(triggered()), this, SLOT(slotSelect30FPS()));
 	connect(ui.action50Fps, SIGNAL(triggered()), this, SLOT(slotSelect50FPS()));
 	connect(ui.action60Fps, SIGNAL(triggered()), this, SLOT(slotSelect60FPS()));
+	connect(ui.actionRealTime, SIGNAL(triggered()), this, SLOT(slotSelectRealtime()));
+
 
 	// add the action full screen
 	connect(ui.actionFullScreen_F11, SIGNAL(triggered()), this, SLOT(slotSetVedioFullScreen()));
@@ -80,9 +88,11 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	connect(ui.actionGroundMode, SIGNAL(triggered()), this, SLOT(slotSelectGndRxMode()));
 
 	// add the usbdevice detect
-	
-	connect(ui.actionConnectGround, SIGNAL(triggered()), this, SLOT(slotStartOrStopUsbMonitor()));
+	connect(ui.actionConnect, SIGNAL(triggered()), this, SLOT(slotStartOrStopUsbMonitor()));
 
+	// add the UsbStatus show in statusBar
+	qRegisterMetaType<UsbStatus>("UsbStatus");
+	connect(&thUsbMonitor, SIGNAL(signalUsbStatus(UsbStatus)), this, SLOT(slotShowUsbStatus(UsbStatus)));
 }
 
 QCoolPlayer::~QCoolPlayer(void)
@@ -103,13 +113,23 @@ void QCoolPlayer::slotExit(void)
 
 void QCoolPlayer::slotLoadFile(void)
 {
-	//QString fileName_H264 = QFileDialog::getOpenFileName(this,
-	//	tr("Open file H.264"), ".", tr("Files (*.264 *.h264)"));
+	if (ui.actionSkyMode->isChecked())
+	{	
+		// sky mode play the file
+		QString fileName_H264 = QFileDialog::getOpenFileName(this,	
+			tr("Open file H.264"), ".", tr("Files (*.264 *.h264)"));
 
-	//QString fileName_H264 = "bigbuckbunny_480x272.h264";
-	QString fileName_H264 = "Avatar_1920x1080@30Hz_3Mbps.264";
-	
-	thDecoderFfmpeg.fileNameH264 = fileName_H264;
+		if (fileName_H264 == NULL)
+		{
+			return;
+		}
+		thDecoderFfmpeg.playMode = SkyTxMode;
+		thDecoderFfmpeg.fileNameH264 = fileName_H264;
+	}
+	else
+	{
+		thDecoderFfmpeg.playMode = GndRxMode;
+	}
 
 	timerFreshImage.start(1000 / vedioWidget.frameRateToShow);
 
@@ -119,13 +139,18 @@ void QCoolPlayer::slotLoadFile(void)
 	ui.actionGroundMode->setEnabled(false);
 	ui.actionSkyMode->setEnabled(false);
 
+	thDecoderFfmpeg.playFrameRate = vedioWidget.frameRateToShow;
 	thDecoderFfmpeg.start();
 }
 
 void QCoolPlayer::slotShowTheNewImage(void)
 {
 	QImage* img = new QImage;
-	gListToShow.try_front(img);
+	if (gListToShow.empty())
+	{
+		return;
+	}
+
 	gListToShow.try_pop(img);
 
 	vedioWidget.setFrame(*img);
@@ -139,8 +164,10 @@ void QCoolPlayer::slotShowTheNewImage(void)
 	{
 		tmode = "GndRxMode";
 	}
-
-	ui.statusBar->showMessage(tmode + "  ""Fps:" + QString::number(vedioWidget.frameRateToShow, 10));
+	gListToShow.size();
+	ui.statusBar->showMessage(tmode + "    Fps : " + QString::number(vedioWidget.frameRateToShow, 10)
+		+ "    Vedio1List : " + QString::number(gListToShow.size(), 10)
+		+ "    Vedio1UsbList :" + QString::number(gListUsbBulkList_Vedio1.size(), 10));
 
 	delete img;
 }
@@ -152,6 +179,7 @@ void QCoolPlayer::clearFrameRate(void)
 	ui.action30Fps->setChecked(false);
 	ui.action50Fps->setChecked(false);
 	ui.action60Fps->setChecked(false);
+	ui.actionRealTime->setChecked(false);
 }
 
 
@@ -161,6 +189,8 @@ void QCoolPlayer::slotSelect24FPS(void)
 	clearFrameRate();
 	ui.action24Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 24;
+	thDecoderFfmpeg.playFrameRate = vedioWidget.frameRateToShow;
+
 	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
@@ -170,6 +200,7 @@ void QCoolPlayer::slotSelect25FPS(void)
 	clearFrameRate();
 	ui.action25Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 25;
+	thDecoderFfmpeg.playFrameRate = vedioWidget.frameRateToShow;
 	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
@@ -178,6 +209,7 @@ void QCoolPlayer::slotSelect30FPS(void)
 	clearFrameRate();
 	ui.action30Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 30;
+	thDecoderFfmpeg.playFrameRate = vedioWidget.frameRateToShow;
 	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
@@ -186,6 +218,7 @@ void QCoolPlayer::slotSelect50FPS(void)
 	clearFrameRate();
 	ui.action50Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 50;
+	thDecoderFfmpeg.playFrameRate = vedioWidget.frameRateToShow;
 	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
@@ -194,6 +227,16 @@ void QCoolPlayer::slotSelect60FPS(void)
 	clearFrameRate();
 	ui.action60Fps->setChecked(true);
 	vedioWidget.frameRateToShow = 60;
+	thDecoderFfmpeg.playFrameRate = vedioWidget.frameRateToShow;
+	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
+}
+
+void QCoolPlayer::slotSelectRealtime(void)
+{
+	clearFrameRate();
+	ui.actionRealTime->setChecked(true);
+	vedioWidget.frameRateToShow = 120;
+	thDecoderFfmpeg.playFrameRate = vedioWidget.frameRateToShow;
 	timerFreshImage.setInterval(1000 / vedioWidget.frameRateToShow);
 }
 
@@ -215,12 +258,21 @@ void QCoolPlayer::slotStopPlayVedio(void)
 	timerFreshImage.stop();
 
 	ui.actionStop->setEnabled(false);
-	ui.actionOpenFile_H264->setEnabled(true);
 	ui.actionGroundMode->setEnabled(true);
-	ui.actionSkyMode->setEnabled(true);
-
-	vedioWidget.setFrame(QImage("./picture/LOGO3-red.png"));
-
+	
+	if (thDecoderFfmpeg.playMode == SkyTxMode)
+	{
+		ui.actionOpenFile_H264->setEnabled(true);
+		ui.actionSkyMode->setEnabled(true);  // just for now
+	}
+	else
+	{
+		thUsbMonitor.stopImmediately();
+		thUsbMonitor.wait();
+		
+		ui.actionConnect->setChecked(false);
+	}
+	
 }
 
 void QCoolPlayer::slotSelectSkyTxMode(void)
@@ -245,18 +297,38 @@ void QCoolPlayer::slotSelectGndRxMode(void)
 
 void QCoolPlayer::slotStartOrStopUsbMonitor(void)
 {
-
-	qDebug() << "test" << ui.actionConnectGround->isChecked() <<endl;
-	if (ui.actionConnectGround->isChecked() == true)
+	if (ui.actionConnect->isChecked() == true)
 	{
 		thUsbMonitor.start();
+
+		slotLoadFile();
 	}
 	else
 	{
 		thUsbMonitor.stopImmediately();
+		slotStopPlayVedio();
+
+		timerFreshImage.stop();
 		thUsbMonitor.wait();
+
 	}
 	// start the USB device Monitor
+}
+
+void QCoolPlayer::slotShowUsbStatus(UsbStatus status)
+{
+
+	QString srtStatus;
+	switch (status)
+	{
+		case NoDeviceFind:  srtStatus = "NoDeviceFind"; break;
+		case ConnectSuccess: srtStatus = "ConnectSuccess"; break;
+		case ErrorInOpen: srtStatus = "ErrorInOpen"; break;
+		case ErrorIncommunication: srtStatus = "ErrorIncommunication";  break;
+
+		default : srtStatus = "ErrorIncommunication"; break;
+	}
+	ui.statusBar->showMessage(srtStatus,5000);
 }
 
 

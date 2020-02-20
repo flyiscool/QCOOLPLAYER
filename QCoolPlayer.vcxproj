@@ -103,7 +103,6 @@
     <ClCompile Include="src\cpDecoderFfmpeg.cpp" />
     <ClCompile Include="src\cpRenderArea.cpp" />
     <ClCompile Include="src\cpThread.cpp" />
-    <ClCompile Include="src\cpUsbFifo.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -115,7 +114,6 @@
     <ClInclude Include="libusb-1.0.22\include\libusb-1.0\libusb.h" />
     <ClInclude Include="src\cpStructData.h" />
     <ClInclude Include="src\cpThreadSafeQueue.h" />
-    <ClInclude Include="src\cpUsbFifo.h" />
     <ClInclude Include="src\cpUsbMonitor.h" />
     <QtMoc Include="qcoolplayer.h" />
     <ClInclude Include="ffmpeg-4.2.2\include\libavcodec\ac3_parser.h" />

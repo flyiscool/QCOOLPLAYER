@@ -38,12 +38,14 @@ public slots:
 	void slotSelect30FPS(void);
 	void slotSelect50FPS(void);
 	void slotSelect60FPS(void);
+	void slotSelectRealtime(void);
 	void slotSubWidgetKeyPress(QKeyEvent* ev);
 	void slotSetVedioFullScreen(void);
 	void slotStopPlayVedio(void);
 	void slotSelectSkyTxMode(void);
 	void slotSelectGndRxMode(void);
 	void slotStartOrStopUsbMonitor(void);
+	void slotShowUsbStatus(UsbStatus status);
 
 
 protected:

@@ -41,13 +41,9 @@
     <addaction name="actionGroundMode"/>
     <addaction name="separator"/>
     <addaction name="actionOpenFile_H264"/>
+    <addaction name="actionConnect"/>
     <addaction name="actionExit_0"/>
-   </widget>
-   <widget class="QMenu" name="menuStatus_2">
-    <property name="title">
-     <string>Status</string>
-    </property>
-    <addaction name="actionConnectGround"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuStatus">
     <property name="enabled">
@@ -59,6 +55,7 @@
     <addaction name="separator"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
+    <addaction name="actionRealTime"/>
     <addaction name="action24Fps"/>
     <addaction name="action25Fps"/>
     <addaction name="action30Fps"/>
@@ -69,7 +66,6 @@
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuStatus"/>
-   <addaction name="menuStatus_2"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpenFile_H264">
@@ -77,6 +73,9 @@
     <bool>false</bool>
    </property>
    <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
@@ -115,7 +114,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>30Fps</string>
@@ -153,10 +152,13 @@
   </action>
   <action name="actionSkyMode">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>SkyMode</string>
@@ -167,7 +169,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>GroundMode</string>
@@ -184,6 +186,25 @@
    </property>
    <property name="text">
     <string>ConnectGround</string>
+   </property>
+  </action>
+  <action name="actionRealTime">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Realtime</string>
+   </property>
+  </action>
+  <action name="actionConnect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Connect</string>
    </property>
   </action>
  </widget>

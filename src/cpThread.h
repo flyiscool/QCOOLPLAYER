@@ -10,6 +10,7 @@
 #include <qDebug>
 
 
+
 #include "cpStructData.h"
 #include "libusb.h"
 
@@ -44,6 +45,8 @@ class CPThreadDecoderFfmpeg : public CPThread
 public:
 	virtual void run();
 	QString fileNameH264;
+	RxTxMode playMode;
+	int playFrameRate;
 
 public slots:
 	QString getFileName(void)
@@ -75,6 +78,8 @@ public:
 	libusb_context* ctx;
 	libusb_device_handle* devGround;
 	libusb_device_handle* devSky;
+signals:
+	void signalUsbStatus(UsbStatus);
 };
 
 class CPThreadUsbVedio1 : public CPThread

@@ -9,7 +9,7 @@
 
 #include "cpThread.h"
 #include "libusb.h"
-
+#include "cpThreadSafeQueue.h"
 
 #define VID_COOLFLY		0xC001
 
@@ -17,6 +17,42 @@
 #define PID_CP_F1_GND   0x00F1
 
 #define IFGROUND	0
+
+#define ENDPOINT_VEDIO_OUT	0x06 
+#define ENDPOINT_VEDIO_IN	0x86 
+
+#define MAX_BUFFER_IN_VEDIO1_LIST	30
+
+extern threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
+
+
+
+int gettimeofday(struct timeval* tp, void* tzp)
+{
+
+	static const DWORDLONG FILETIME_to_timval_skew = 116444736000000000;
+	FILETIME   tfile;
+	::GetSystemTimeAsFileTime(&tfile);
+
+	ULARGE_INTEGER _100ns;
+	_100ns.LowPart = tfile.dwLowDateTime;
+	_100ns.HighPart = tfile.dwHighDateTime;
+
+	_100ns.QuadPart -= FILETIME_to_timval_skew;
+
+	// Convert 100ns units to seconds;
+	ULARGE_INTEGER largeint;
+	largeint.QuadPart = _100ns.QuadPart / (10000 * 1000);
+
+	// Convert 100ns units to seconds;
+	tp->tv_sec = (long)(_100ns.QuadPart / (10000 * 1000));
+	// Convert remainder to microseconds;
+	tp->tv_usec = (long)((_100ns.QuadPart % (10000 * 1000)) / 10);
+
+	return (0);
+}
+
+
 
 void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 {
@@ -33,7 +69,20 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 
 	libusb_set_debug(pCPthThis->ctx, 3);  //set verbosity level to 3, as suggested in the documentation
 
+
+	FILE* fp_h264 = fopen("record.h264","wb");
+
+	UsbBuffPackage* pVedio1Buff;
+	threadsafe_queue<UsbBuffPackage*>* tList = &gListUsbBulkList_Vedio1;
+	int transferred;
+	struct timeval cap_systime;
+	int pktID = 0;
+	UsbBuffPackage* pkgGiveUp = NULL;
+	int cnt_dev2 = libusb_get_device_list(NULL, &pCPthThis->devsList); //get the list of devices
+	qDebug() << cnt_dev2 << endl;
 	while (1){
+
+
 
 		// exit 
 		if (!(pCPthThis->IsRun())) {
@@ -46,8 +95,6 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 				}
 			}
 
-			//Only avaiable on linux
-			//libusb_attach_kernel_driver(pCPthThis->devGround, 0);
 			if (pCPthThis->devGround != NULL)
 			{
 				libusb_close(pCPthThis->devGround);
@@ -58,9 +105,7 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 				//libusb_exit(pCPthThis->ctx); //close the sessio
 			}
 			pCPthThis->ctx = NULL;
-			
-			qDebug() << "end" << endl;
-
+	
 			return;
 		}
 
@@ -76,20 +121,15 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 			pCPthThis->devGround = libusb_open_device_with_vid_pid(pCPthThis->ctx, VID_COOLFLY, PID_CP_F1_GND);
 			if (pCPthThis->devGround == NULL) {
 				qDebug() << "Can't open the device Ground" << endl;
+
+				emit pCPthThis->signalUsbStatus(NoDeviceFind);
+				
 				libusb_free_device_list(pCPthThis->devsList, 1);
 				pCPthThis->msleep(1000);
 				continue;
 			}
 			else
 			{	
-				// Only avaiable on linux
-				//if (libusb_kernel_driver_active(pCPthThis->devGround, 0) == 1) { //find out if kernel driver is attached
-				//	qDebug() << "Kernel Driver Active" << endl;
-				//	if (libusb_detach_kernel_driver(pCPthThis->devGround, 0) == 0) { //detach it
-				//		qDebug() << "Kernel Driver Detached!" << endl;
-				//	}
-				//}
-
 				r = libusb_claim_interface(pCPthThis->devGround, IFGROUND); //claim interface 0 (the first) of device (mine had jsut 1)
 				if (r < 0) {
 					qDebug() << "Cannot Claim Interface" << endl;
@@ -97,10 +137,84 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 					pCPthThis->devGround = NULL;
 					continue;
 				}
+				emit pCPthThis->signalUsbStatus(ConnectSuccess);
 			}
 		}
 		
+		pVedio1Buff = new UsbBuffPackage;
+		transferred = 0;
 
+		r = libusb_interrupt_transfer(pCPthThis->devGround, ENDPOINT_VEDIO_IN, pVedio1Buff->data, MAX_USB_BULK_SIZE, &transferred, 1000);
+		switch (r)
+		{
+		
+		case 0:	
+			// success
+			pVedio1Buff->length = transferred;
+			gettimeofday(&cap_systime, NULL);
+			pVedio1Buff->timeStamp = cap_systime.tv_sec + 0.000001 * cap_systime.tv_usec;
+			pVedio1Buff->packageID = pktID++;
+
+			if (pktID < 2000)
+			{
+				fwrite(pVedio1Buff->data, 1, transferred, fp_h264);
+			}
+			
+			if (pktID == 2000)
+			{
+				fclose(fp_h264);
+			}
+
+
+
+			if (0 == tList->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
+			{
+				qDebug() << "UsbBuffList Vedio1 is Full,Give Up the oldest package" << endl;
+				delete pkgGiveUp;
+			}
+			break;
+
+		case LIBUSB_ERROR_TIMEOUT:	// timeout also need to check the transferred;
+			qDebug() << "LIBUSB_ERROR_TIMEOUT" << endl;
+			if (transferred > 0)
+			{
+				pVedio1Buff->length = transferred;
+				gettimeofday(&cap_systime, NULL);
+				pVedio1Buff->timeStamp = cap_systime.tv_sec + 0.000001 * cap_systime.tv_usec;
+				pVedio1Buff->packageID = pktID++;
+				if (0 == tList->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
+				{
+					qDebug() << "UsbBuffList Vedio1 is Full, Give Up the oldest package2" << endl;
+					delete pkgGiveUp;
+				}
+			}
+			else
+			{
+				qDebug() << "vedio1 bulk timeout,There no Data in a second." << endl;
+				pCPthThis->msleep(500);
+			}
+			break;
+		case LIBUSB_ERROR_PIPE:	// the endpoint halted,so  retry to open the interface.
+			qDebug() << "vedio1 endpoint halted. LIBUSB_ERROR_PIPE" << endl;
+			pCPthThis->devGround = NULL;
+			pCPthThis->msleep(500);
+			break;
+		case LIBUSB_ERROR_OVERFLOW:	 // give up the data because it's maybe lost. need fix.
+			qDebug() << "vedio1 Buff is to small. LIBUSB_ERROR_OVERFLOW" << endl;
+			break;
+
+		case LIBUSB_ERROR_NO_DEVICE: // maybe lost the device.
+			qDebug() << "vedio1 device lost. LIBUSB_ERROR_NO_DEVICE" << endl;
+			pVedio1Buff->length = NULL;
+			break;
+		case LIBUSB_ERROR_BUSY:			
+			qDebug() << "vedio1 LIBUSB_ERROR_BUSY" << endl;
+			pCPthThis->msleep(500);
+			break;
+		default:
+			qDebug() << "vedio error unknow : "<< r << endl;
+			break;
+		}
 
 	}
 
