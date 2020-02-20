@@ -74,7 +74,7 @@
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)libusb-1.0.22\MS64\static;$(ProjectDir)SDL2-2.0.10\lib\x64;$(ProjectDir)ffmpeg-4.2.2\lib;$(ProjectDir)ffmpeg-4.2.2\dll;$(ProjectDir)libusb-1.0.22\MS64\dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)libusb-1.0.22\MS64\static;$(ProjectDir)ffmpeg-4.2.2\lib;$(ProjectDir)ffmpeg-4.2.2\dll;$(ProjectDir)libusb-1.0.22\MS64\dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(ProjectDir)ffmpeg-4.2.2\lib\avcodec.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avdevice.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avfilter.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avformat.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avutil.lib;$(ProjectDir)ffmpeg-4.2.2\lib\postproc.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swresample.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swscale.lib;$(ProjectDir)libusb-1.0.22\MS64\static\libusb-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -90,11 +90,13 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)libusb-1.0.22\include\libusb-1.0;$(ProjectDir)ffmpeg-4.2.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>$(ProjectDir)ffmpeg-4.2.2\lib\avcodec.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avdevice.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avfilter.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avformat.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avutil.lib;$(ProjectDir)ffmpeg-4.2.2\lib\postproc.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swresample.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swscale.lib;$(ProjectDir)libusb-1.0.22\MS64\static\libusb-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

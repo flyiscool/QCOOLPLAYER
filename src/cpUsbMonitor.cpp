@@ -155,18 +155,6 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 			pVedio1Buff->timeStamp = cap_systime.tv_sec + 0.000001 * cap_systime.tv_usec;
 			pVedio1Buff->packageID = pktID++;
 
-			if (pktID < 2000)
-			{
-				fwrite(pVedio1Buff->data, 1, transferred, fp_h264);
-			}
-			
-			if (pktID == 2000)
-			{
-				fclose(fp_h264);
-			}
-
-
-
 			if (0 == tList->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
 			{
 				qDebug() << "UsbBuffList Vedio1 is Full,Give Up the oldest package" << endl;
