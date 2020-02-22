@@ -24,8 +24,7 @@
 #define MAX_BUFFER_IN_VEDIO1_LIST	30
 
 extern threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
-
-
+extern threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
 
 int gettimeofday(struct timeval* tp, void* tzp)
 {
@@ -73,7 +72,8 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 	FILE* fp_h264 = fopen("record.h264","wb");
 
 	UsbBuffPackage* pVedio1Buff;
-	threadsafe_queue<UsbBuffPackage*>* tList = &gListUsbBulkList_Vedio1;
+	threadsafe_queue<UsbBuffPackage*>* tListToDecode = &gListUsbBulkList_Vedio1;
+	threadsafe_queue<UsbBuffPackage*>* tListToUDP = &gListH264ToUDP;
 	int transferred;
 	struct timeval cap_systime;
 	int pktID = 0;
@@ -155,11 +155,20 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 			pVedio1Buff->timeStamp = cap_systime.tv_sec + 0.000001 * cap_systime.tv_usec;
 			pVedio1Buff->packageID = pktID++;
 
-			if (0 == tList->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
+			if (0 == tListToDecode->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
 			{
 				qDebug() << "UsbBuffList Vedio1 is Full,Give Up the oldest package" << endl;
 				delete pkgGiveUp;
 			}
+
+			if (0 == tListToUDP->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
+			{
+				//qDebug() << "UsbBuffList Vedio1 is Full,Give Up the oldest package" << endl;
+				delete pkgGiveUp;
+			}
+			
+
+
 			break;
 
 		case LIBUSB_ERROR_TIMEOUT:	// timeout also need to check the transferred;
@@ -170,9 +179,14 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 				gettimeofday(&cap_systime, NULL);
 				pVedio1Buff->timeStamp = cap_systime.tv_sec + 0.000001 * cap_systime.tv_usec;
 				pVedio1Buff->packageID = pktID++;
-				if (0 == tList->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
+				if (0 == tListToDecode->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
 				{
 					qDebug() << "UsbBuffList Vedio1 is Full, Give Up the oldest package2" << endl;
+					delete pkgGiveUp;
+				}
+				if (0 == tListToUDP->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
+				{
+					//qDebug() << "UsbBuffList Vedio1 is Full,Give Up the oldest package" << endl;
 					delete pkgGiveUp;
 				}
 			}

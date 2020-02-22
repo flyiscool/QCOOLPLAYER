@@ -15,10 +15,8 @@
 
 #include "cpUsbMonitor.h"
 
-
-
-
 threadsafe_queue<QImage*> gListToShow;
+threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
 threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
 
 
@@ -30,7 +28,7 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	ui.verticalLayout->addWidget(&vedioWidget);
 	
     // Maximized the window.
-	showMaximized();
+	//showMaximized();
 
 	//ui.verticalLayout->removeWidget(vedioWidget);
 	//vedioWidget->setWindowFlags(Qt::Window);
@@ -93,6 +91,10 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	// add the UsbStatus show in statusBar
 	qRegisterMetaType<UsbStatus>("UsbStatus");
 	connect(&thUsbMonitor, SIGNAL(signalUsbStatus(UsbStatus)), this, SLOT(slotShowUsbStatus(UsbStatus)));
+
+
+
+	thEncoderToUDP.start();
 }
 
 QCoolPlayer::~QCoolPlayer(void)

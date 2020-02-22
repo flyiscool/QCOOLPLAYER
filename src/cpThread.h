@@ -58,10 +58,8 @@ signals:
 	void signalGetOneFrameToShow(QImage);
 };
 
-
-
-// The thread for show the raw image data.
-class CPThreadSdl2Show : public CPThread
+// The thread for decode the h264.
+class CPThreadEncoderToUDP : public CPThread
 {
 	Q_OBJECT
 public:

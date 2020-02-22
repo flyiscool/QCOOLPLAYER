@@ -26,8 +26,11 @@ extern "C"
 
 
 static FILE* g_fpVedio = NULL;
+
 extern threadsafe_queue<QImage*> gListToShow;
+
 extern threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
+extern threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
 
 static	CPThreadDecoderFfmpeg* pthDecoderFfmpeg;
 
@@ -364,10 +367,12 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 				{
 					int numret = pList->push(tmpImg, tmpPackegGiveUp, maxFrameInListToShow);
 				}
+
 				if (tmpPackegGiveUp != NULL)
 				{
 					delete tmpPackegGiveUp;
 				}
+
 				av_packet_unref(packet);
 			
 			}

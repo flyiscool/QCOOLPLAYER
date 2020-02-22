@@ -22,7 +22,7 @@ public:
 private:
 	Ui::QCoolPlayerClass ui;
 	CPThreadDecoderFfmpeg	thDecoderFfmpeg;
-	CPThreadSdl2Show		thSdl2Show;
+	CPThreadEncoderToUDP	thEncoderToUDP;
 	CPThreadUsbMonitor		thUsbMonitor;
 	CPThreadUsbVedio1		thUsbVedio1;
 	RenderArea				vedioWidget;

@@ -4,6 +4,8 @@
 
 #include "cpDecoderFfmpeg.h"
 #include "cpUsbMonitor.h"
+#include "cpEncoderToUDP.h"
+
 
 
 void CPThreadDecoderFfmpeg::run()
@@ -12,10 +14,10 @@ void CPThreadDecoderFfmpeg::run()
 	threadCPDecoderFfmpeg_main(this);
 }
 
-void CPThreadSdl2Show::run()
+void CPThreadEncoderToUDP::run()
 {
 	m_isCanRun = true;
-	//threadCPSdl2Show_main(this);
+	threadCPEncoderToUDP_main(this);
 }
 
 void CPThreadUsbMonitor::run()
