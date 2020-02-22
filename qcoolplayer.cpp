@@ -152,7 +152,7 @@ void QCoolPlayer::slotStartOrStopUsbMonitor(void)
 
 		ui.actionStop->setEnabled(true);
 
-		ui.statusBar->showMessage("connecting...");
+		ui.statusBar->showMessage("connecting...",5000);
 	}
 	else
 	{
