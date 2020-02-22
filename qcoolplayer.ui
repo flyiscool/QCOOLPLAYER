@@ -29,18 +29,13 @@
      <x>0</x>
      <y>0</y>
      <width>1080</width>
-     <height>26</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="separator"/>
-    <addaction name="actionSkyMode"/>
-    <addaction name="actionGroundMode"/>
-    <addaction name="separator"/>
-    <addaction name="actionOpenFile_H264"/>
     <addaction name="actionConnect"/>
     <addaction name="actionExit_0"/>
     <addaction name="separator"/>
@@ -53,14 +48,8 @@
      <string>Ctrl</string>
     </property>
     <addaction name="separator"/>
-    <addaction name="actionStop"/>
     <addaction name="separator"/>
     <addaction name="actionRealTime"/>
-    <addaction name="action24Fps"/>
-    <addaction name="action25Fps"/>
-    <addaction name="action30Fps"/>
-    <addaction name="action50Fps"/>
-    <addaction name="action60Fps"/>
     <addaction name="separator"/>
     <addaction name="actionFullScreen_F11"/>
    </widget>

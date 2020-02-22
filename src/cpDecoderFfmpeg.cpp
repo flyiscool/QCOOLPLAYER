@@ -34,17 +34,7 @@ extern threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
 
 static	CPThreadDecoderFfmpeg* pthDecoderFfmpeg;
 
-//Callback
-static int readFileCallBack(void* opaque, uint8_t* buf, int buf_size) 
-{
-	int true_size = fread(buf, 1, buf_size, g_fpVedio);
-	
-	if (feof(g_fpVedio)) {
-		rewind(g_fpVedio);
-	}
 
-	return true_size;
-}
 
 //Callback
 static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
@@ -58,8 +48,6 @@ static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
 	int surplus = 0;
 	
 	do {
-
-
 
 		while (gListUsbBulkList_Vedio1.empty())
 		{
@@ -93,7 +81,6 @@ static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
 		{
 			if (pBuff->length > buf_size)
 			{
-				//qDebug() << "buf_size" << buf_size << "pBuff->length" << pBuff->length << "pBuff->packageID" << pBuff->packageID << endl;
 				cnt = buf_size;
 				pktID = pBuff->packageID;
 				memcpy(buf + length, pBuff->data, buf_size);
@@ -103,7 +90,6 @@ static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
 			}
 			else
 			{
-				qDebug() << "pktID" << pktID << "pBuff->length" << pBuff->length << "pBuff->packageID" << pBuff->packageID << endl;
 				cnt = 0;
 				memcpy(buf + length, pBuff->data, pBuff->length);
 				length = pBuff->length + length;		
@@ -114,7 +100,6 @@ static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
 			}
 		}
 
-		
 	} while (buf_size > 0);
 
 	return length;
@@ -130,25 +115,6 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	// init ffmpeg
 	av_register_all();
 	avformat_network_init();
-
-	if (pCPthThis->playMode == SkyTxMode)  // sky play files and tx
-	{
-		// open file
-		QString fileName_H264 = pCPthThis->getFileName();
-		QByteArray temp = fileName_H264.toLatin1();
-		char* pFileName_H264 = temp.data();
-
-		g_fpVedio = fopen(pFileName_H264, "rb+");
-		if (!g_fpVedio) {
-			qDebug() << "Can't open video file!" << endl;
-			return;
-		}
-	}
-	else  // pCPthThis->playMode == GndRxMode;
-	{
-		; // do nothing;
-	}
-
 
 	AVFormatContext* pFormatCtx = avformat_alloc_context();
 
@@ -167,23 +133,14 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 				av_freep(&avio);
 			}
 			//avformat_close_input(&pFormatCtx);
-			break;
+			return;
 		}
 
 		//Init AVIOContext    read_buffer is a callback function
 		aviobuffer = (unsigned char*)av_malloc(SIZE_READ_BUFF);
 
+		avio = avio_alloc_context(aviobuffer, SIZE_READ_BUFF, 0, NULL, &readUsbVedio1ListCallBack, NULL, NULL);
 	
-		if (pCPthThis->playMode == SkyTxMode)
-		{
-			// Set the call back
-			avio = avio_alloc_context(aviobuffer, SIZE_READ_BUFF, 0, NULL, &readFileCallBack, NULL, NULL);
-		}
-		else
-		{
-			avio = avio_alloc_context(aviobuffer, SIZE_READ_BUFF, 0, NULL, &readUsbVedio1ListCallBack, NULL, NULL);
-		}
-
 		// Set buff to be the input for decoder
 		pFormatCtx->pb = avio;
 
@@ -296,9 +253,6 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 	pList = &gListToShow;
 	
 	while (1) {
-
-		
-
 		if (!(pCPthThis->IsRun())) {
 			sws_freeContext(img_convert_ctx);
 
@@ -312,18 +266,6 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 			avformat_close_input(&pFormatCtx);
 
 			break;
-		}
-
-
-
-		if (pCPthThis->playMode == SkyTxMode)
-		{
-
-			if (pList->size() >= MAX_FRAME_TO_SLEEP)
-			{
-				pCPthThis->msleep(50);
-				continue;
-			}
 		}
 
 		if (av_read_frame(pFormatCtx, packet) < 0) {
@@ -340,34 +282,40 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 			}
 
 			if (got_picture) {
+
+				if (pFormatCtx->streams[videoindex]->r_frame_rate.den != 0)
+				{
+					int tRate = pFormatCtx->streams[videoindex]->r_frame_rate.num / pFormatCtx->streams[videoindex]->r_frame_rate.den;
+					if ((tRate > 0) && (tRate <= 120))
+					{
+						if (pCPthThis->playFrameRate != tRate)
+						{
+							pCPthThis->playFrameRate = tRate;
+							emit pCPthThis->signalFrameRateUpdate(tRate);
+						}
+					}
+				}
+				
 				sws_scale(img_convert_ctx,
 					(const unsigned char* const*)pFrame->data,
 					pFrame->linesize, 0, pCodecCtx->height,
 					pFrameRGB->data, pFrameRGB->linesize);
-
-				//QImage tmpImg((uchar*)rgb_buffer, pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
 				
 				QImage* tmpImg = new QImage((uchar*)rgb_buffer, pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
 
 				QImage* tmpPackegGiveUp = NULL;
 
 				int maxFrameInListToShow;
-				if (pCPthThis->playFrameRate == 120)
+				if (pCPthThis->realTimeMode == true)
 				{
 					maxFrameInListToShow = 1;  // just show the last picture;
 				}
 				else
 				{
-					maxFrameInListToShow = 3;
+					maxFrameInListToShow = 5;
 				}
-				if (pCPthThis->playMode == SkyTxMode)
-				{
-					int numret = pList->push(tmpImg, tmpPackegGiveUp, MAX_FRAME_IN_LIST_TO_SHOW);
-				}
-				else
-				{
-					int numret = pList->push(tmpImg, tmpPackegGiveUp, maxFrameInListToShow);
-				}
+
+				int numret = pList->push(tmpImg, tmpPackegGiveUp, maxFrameInListToShow);
 
 				if (tmpPackegGiveUp != NULL)
 				{

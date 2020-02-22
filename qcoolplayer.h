@@ -22,31 +22,18 @@ public:
 private:
 	Ui::QCoolPlayerClass ui;
 	CPThreadDecoderFfmpeg	thDecoderFfmpeg;
-	CPThreadEncoderToUDP	thEncoderToUDP;
 	CPThreadUsbMonitor		thUsbMonitor;
-	CPThreadUsbVedio1		thUsbVedio1;
 	RenderArea				vedioWidget;
 	QTimer					timerFreshImage;
-	void clearFrameRate(void);
-	RxTxMode	modePlayer;
 public slots:
 	void slotExit(void);
-	void slotLoadFile(void);
 	void slotShowTheNewImage(void);
-	void slotSelect24FPS(void);
-	void slotSelect25FPS(void);
-	void slotSelect30FPS(void);
-	void slotSelect50FPS(void);
-	void slotSelect60FPS(void);
 	void slotSelectRealtime(void);
 	void slotSubWidgetKeyPress(QKeyEvent* ev);
 	void slotSetVedioFullScreen(void);
-	void slotStopPlayVedio(void);
-	void slotSelectSkyTxMode(void);
-	void slotSelectGndRxMode(void);
 	void slotStartOrStopUsbMonitor(void);
 	void slotShowUsbStatus(UsbStatus status);
-
+	void slotUpdateFrameRate(int rate);
 
 protected:
 

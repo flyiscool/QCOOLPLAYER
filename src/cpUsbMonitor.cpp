@@ -68,9 +68,6 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 
 	libusb_set_debug(pCPthThis->ctx, 3);  //set verbosity level to 3, as suggested in the documentation
 
-
-	FILE* fp_h264 = fopen("record.h264","wb");
-
 	UsbBuffPackage* pVedio1Buff;
 	threadsafe_queue<UsbBuffPackage*>* tListToDecode = &gListUsbBulkList_Vedio1;
 	threadsafe_queue<UsbBuffPackage*>* tListToUDP = &gListH264ToUDP;

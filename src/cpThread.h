@@ -9,8 +9,6 @@
 #include <QMutex>
 #include <qDebug>
 
-
-
 #include "cpStructData.h"
 #include "libusb.h"
 
@@ -44,27 +42,12 @@ class CPThreadDecoderFfmpeg : public CPThread
 	Q_OBJECT
 public:
 	virtual void run();
-	QString fileNameH264;
-	RxTxMode playMode;
 	int playFrameRate;
-
-public slots:
-	QString getFileName(void)
-	{
-		return fileNameH264;
-	}
-
+	bool realTimeMode;
 signals:
-	void signalGetOneFrameToShow(QImage);
+	void signalFrameRateUpdate(int);
 };
 
-// The thread for decode the h264.
-class CPThreadEncoderToUDP : public CPThread
-{
-	Q_OBJECT
-public:
-	virtual void run();
-};
 
 // The thread monitor the usb device hot-plug
 class CPThreadUsbMonitor : public CPThread
@@ -78,13 +61,6 @@ public:
 	libusb_device_handle* devSky;
 signals:
 	void signalUsbStatus(UsbStatus);
-};
-
-class CPThreadUsbVedio1 : public CPThread
-{
-	Q_OBJECT
-public:
-	virtual void run();
 };
 
 

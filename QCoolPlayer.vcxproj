@@ -103,7 +103,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="qcoolplayer.cpp" />
     <ClCompile Include="src\cpDecoderFfmpeg.cpp" />
-    <ClCompile Include="src\cpEncoderToUDP.cpp" />
     <ClCompile Include="src\cpRenderArea.cpp" />
     <ClCompile Include="src\cpThread.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -115,7 +114,6 @@
   <ItemGroup>
     <QtMoc Include="src\cpRenderArea.h" />
     <ClInclude Include="libusb-1.0.22\include\libusb-1.0\libusb.h" />
-    <ClInclude Include="src\cpEncoderToUDP.h" />
     <ClInclude Include="src\cpStructData.h" />
     <ClInclude Include="src\cpThreadSafeQueue.h" />
     <ClInclude Include="src\cpUsbMonitor.h" />

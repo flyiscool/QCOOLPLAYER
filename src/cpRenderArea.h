@@ -14,7 +14,6 @@ class RenderArea : public QWidget
 
 public:
 	RenderArea(QWidget* parent = 0);
-	int frameRateToShow;
 
 public slots:
 	void setFrame(QImage frame);

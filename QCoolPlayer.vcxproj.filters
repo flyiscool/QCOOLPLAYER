@@ -46,9 +46,6 @@
     <ClCompile Include="src\cpRenderArea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\cpEncoderToUDP.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -415,9 +412,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libusb-1.0.22\include\libusb-1.0\libusb.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cpEncoderToUDP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
