@@ -94,7 +94,7 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 
 
 
-	thEncoderToUDP.start();
+	//thEncoderToUDP.start();
 }
 
 QCoolPlayer::~QCoolPlayer(void)

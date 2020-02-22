@@ -161,14 +161,6 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 				delete pkgGiveUp;
 			}
 
-			if (0 == tListToUDP->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
-			{
-				//qDebug() << "UsbBuffList Vedio1 is Full,Give Up the oldest package" << endl;
-				delete pkgGiveUp;
-			}
-			
-
-
 			break;
 
 		case LIBUSB_ERROR_TIMEOUT:	// timeout also need to check the transferred;
@@ -182,11 +174,6 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 				if (0 == tListToDecode->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
 				{
 					qDebug() << "UsbBuffList Vedio1 is Full, Give Up the oldest package2" << endl;
-					delete pkgGiveUp;
-				}
-				if (0 == tListToUDP->push(pVedio1Buff, pkgGiveUp, MAX_BUFFER_IN_VEDIO1_LIST))
-				{
-					//qDebug() << "UsbBuffList Vedio1 is Full,Give Up the oldest package" << endl;
 					delete pkgGiveUp;
 				}
 			}

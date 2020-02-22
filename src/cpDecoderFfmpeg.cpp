@@ -103,6 +103,7 @@ static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
 			}
 			else
 			{
+				qDebug() << "pktID" << pktID << "pBuff->length" << pBuff->length << "pBuff->packageID" << pBuff->packageID << endl;
 				cnt = 0;
 				memcpy(buf + length, pBuff->data, pBuff->length);
 				length = pBuff->length + length;		
@@ -165,7 +166,7 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 				av_freep(&avio->buffer);
 				av_freep(&avio);
 			}
-			avformat_close_input(&pFormatCtx);
+			//avformat_close_input(&pFormatCtx);
 			break;
 		}
 
