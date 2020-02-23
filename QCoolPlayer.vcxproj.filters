@@ -479,6 +479,7 @@
     <None Include="ffmpeg-4.2.2\lib\swscale-5.def">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ffmpeg-4.2.2\lib\avcodec.lib" />

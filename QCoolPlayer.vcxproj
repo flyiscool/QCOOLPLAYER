@@ -271,6 +271,7 @@
     <None Include="ffmpeg-4.2.2\lib\swresample-3.def" />
     <None Include="ffmpeg-4.2.2\lib\swscale-5.def" />
     <None Include="QCoolPlayer.aps" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ffmpeg-4.2.2\lib\avcodec.lib" />
