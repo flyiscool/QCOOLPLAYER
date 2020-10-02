@@ -11,12 +11,12 @@
 #include "libusb.h"
 #include "cpThreadSafeQueue.h"
 
-#define VID_COOLFLY		0xC001
+#define VID_COOLFLY		0xAAAA
 
-#define PID_CP_F1_SKY   0x0001
-#define PID_CP_F1_GND   0x00F1
+//#define PID_CP_F1_SKY   0x0001
+#define PID_CP_F1_GND   0xAA97
 
-#define IFGROUND	0
+#define IFGROUND	1
 
 #define ENDPOINT_VEDIO_OUT	0x06 
 #define ENDPOINT_VEDIO_IN	0x86 
@@ -70,13 +70,12 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 
 	UsbBuffPackage* pVedio1Buff;
 	threadsafe_queue<UsbBuffPackage*>* tListToDecode = &gListUsbBulkList_Vedio1;
-	threadsafe_queue<UsbBuffPackage*>* tListToUDP = &gListH264ToUDP;
 	int transferred;
 	struct timeval cap_systime;
 	int pktID = 0;
 	UsbBuffPackage* pkgGiveUp = NULL;
 	int cnt_dev2 = libusb_get_device_list(NULL, &pCPthThis->devsList); //get the list of devices
-	qDebug() << cnt_dev2 << endl;
+	qDebug() <<"11111----------------" <<cnt_dev2 << endl;
 	while (1){
 
 

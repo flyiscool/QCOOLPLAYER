@@ -110,8 +110,7 @@ void QCoolPlayer::slotShowTheNewImage(void)
 	vedioWidget.setFrame(*img);
 
 	gListToShow.size();
-	ui.statusBar->showMessage("Fps : " + QString::number(thDecoderFfmpeg.playFrameRate, 10)
-		+ "    Vedio1List : " + QString::number(gListToShow.size(), 10)
+	ui.statusBar->showMessage("Fps : 30   Vedio1List : " + QString::number(gListToShow.size(), 10)
 		+ "    Vedio1UsbList :" + QString::number(gListUsbBulkList_Vedio1.size(), 10), 1000);
 
 	delete img;
