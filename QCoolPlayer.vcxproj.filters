@@ -46,6 +46,9 @@
     <ClCompile Include="src\cpRenderArea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\cpBulkVideo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -411,7 +414,10 @@
     <ClInclude Include="src\cpStructData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="libusb-1.0.22\include\libusb-1.0\libusb.h">
+    <ClInclude Include="lusb0_usb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpBulkVideo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -498,6 +504,6 @@
     <Library Include="ffmpeg-4.2.2\lib\postproc.lib" />
     <Library Include="ffmpeg-4.2.2\lib\swresample.lib" />
     <Library Include="ffmpeg-4.2.2\lib\swscale.lib" />
-    <Library Include="libusb-1.0.22\MS64\static\libusb-1.0.lib" />
+    <Library Include="libusb-win32-bin-1.2.6.0\lib\msvc_x64\libusb.lib" />
   </ItemGroup>
 </Project>

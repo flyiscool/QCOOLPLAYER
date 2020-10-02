@@ -68,14 +68,14 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)ffmpeg-4.2.2\include;$(ProjectDir)libusb-1.0.22\include\libusb-1.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)ffmpeg-4.2.2\include;$(ProjectDir)libusb-win32-bin-1.2.6.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)libusb-1.0.22\MS64\static;$(ProjectDir)ffmpeg-4.2.2\lib;$(ProjectDir)ffmpeg-4.2.2\dll;$(ProjectDir)libusb-1.0.22\MS64\dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(ProjectDir)ffmpeg-4.2.2\lib\avcodec.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avdevice.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avfilter.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avformat.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avutil.lib;$(ProjectDir)ffmpeg-4.2.2\lib\postproc.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swresample.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swscale.lib;$(ProjectDir)libusb-1.0.22\MS64\static\libusb-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)ffmpeg-4.2.2\lib;$(ProjectDir)ffmpeg-4.2.2\dll;$(ProjectDir)libusb-win32-bin-1.2.6.0\lib\dynamic;$(ProjectDir)libusb-win32-bin-1.2.6.0\lib\msvc_x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(ProjectDir)ffmpeg-4.2.2\lib\avcodec.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avdevice.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avfilter.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avformat.lib;$(ProjectDir)ffmpeg-4.2.2\lib\avutil.lib;$(ProjectDir)ffmpeg-4.2.2\lib\postproc.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swresample.lib;$(ProjectDir)ffmpeg-4.2.2\lib\swscale.lib;$(ProjectDir)libusb-win32-bin-1.2.6.0\lib\msvc_x64\libusb.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -102,6 +102,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="qcoolplayer.cpp" />
+    <ClCompile Include="src\cpBulkVideo.cpp" />
     <ClCompile Include="src\cpDecoderFfmpeg.cpp" />
     <ClCompile Include="src\cpRenderArea.cpp" />
     <ClCompile Include="src\cpThread.cpp" />
@@ -113,7 +114,8 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="src\cpRenderArea.h" />
-    <ClInclude Include="libusb-1.0.22\include\libusb-1.0\libusb.h" />
+    <ClInclude Include="lusb0_usb.h" />
+    <ClInclude Include="src\cpBulkVideo.h" />
     <ClInclude Include="src\cpStructData.h" />
     <ClInclude Include="src\cpThreadSafeQueue.h" />
     <ClInclude Include="src\cpUsbMonitor.h" />
@@ -290,7 +292,7 @@
     <Library Include="ffmpeg-4.2.2\lib\postproc.lib" />
     <Library Include="ffmpeg-4.2.2\lib\swresample.lib" />
     <Library Include="ffmpeg-4.2.2\lib\swscale.lib" />
-    <Library Include="libusb-1.0.22\MS64\static\libusb-1.0.lib" />
+    <Library Include="libusb-win32-bin-1.2.6.0\lib\msvc_x64\libusb.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

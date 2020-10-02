@@ -10,7 +10,7 @@
 #include <qDebug>
 
 #include "cpStructData.h"
-#include "libusb.h"
+#include "lusb0_usb.h"
 
 
 
@@ -55,13 +55,24 @@ class CPThreadUsbMonitor : public CPThread
 	Q_OBJECT
 public:
 	virtual void run();
-	libusb_device** devsList;
-	libusb_context* ctx;
-	libusb_device_handle* devGround;
-	libusb_device_handle* devSky;
+	void DoemitSingal(bool arrival);
 signals:
-	void signalUsbStatus(UsbStatus);
+	void requestInput();
+	void sig_USBUpdate(bool arrival);
 };
+
+
+// The thread bulk the usb video
+class CPThreadBulkVideo : public CPThread
+{
+	Q_OBJECT
+public:
+	virtual void run();
+
+public slots:
+	void updateTheHid(bool);
+};
+
 
 
 #endif

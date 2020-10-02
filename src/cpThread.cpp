@@ -4,6 +4,7 @@
 
 #include "cpDecoderFfmpeg.h"
 #include "cpUsbMonitor.h"
+#include "cpBulkVideo.h"
 
 
 void CPThreadDecoderFfmpeg::run()
@@ -17,3 +18,11 @@ void CPThreadUsbMonitor::run()
 	m_isCanRun = true;
 	threadCPUsbMonitor_main(this);
 }
+
+
+void CPThreadBulkVideo::run()
+{
+	m_isCanRun = true;
+	threadCPBulkVideo_main(this);
+}
+

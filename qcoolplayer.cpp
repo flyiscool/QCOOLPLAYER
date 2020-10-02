@@ -14,11 +14,13 @@
 #include "cpThreadSafeQueue.h"
 
 #include "cpUsbMonitor.h"
+#include "cpBulkVideo.h"
 
 threadsafe_queue<QImage*> gListToShow;
 threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
 threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
 
+CPThreadUsbMonitor*		g_thUsbMonitor;
 
 QCoolPlayer::QCoolPlayer(QWidget *parent)
 	: QMainWindow(parent)
@@ -44,6 +46,7 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	// set the time  tol : 1ms
 	timerFreshImage.setTimerType(Qt::TimerType::PreciseTimer);
 
+	g_thUsbMonitor = &thUsbMonitor;
 
 	/*  slot */
 	// add the action Exit();
@@ -69,8 +72,10 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	connect(ui.actionConnect, SIGNAL(triggered()), this, SLOT(slotStartOrStopUsbMonitor()));
 
 	// add the UsbStatus show in statusBar
-	qRegisterMetaType<UsbStatus>("UsbStatus");
-	connect(&thUsbMonitor, SIGNAL(signalUsbStatus(UsbStatus)), this, SLOT(slotShowUsbStatus(UsbStatus)));
+	connect(&thUsbMonitor, SIGNAL(sig_USBUpdate(bool)), this, SLOT(slotShowUsbStatus(bool)));
+	connect(&thUsbMonitor, SIGNAL(sig_USBUpdate(bool)), &thBulkVideo, SLOT(updateTheHid(bool)));
+
+
 
 	// add the famre rate update
 	connect(&thUsbMonitor, SIGNAL(signalFrameRateUpdate(int)), this, SLOT(slotUpdateFrameRate(int)));
@@ -89,10 +94,14 @@ QCoolPlayer::~QCoolPlayer(void)
 void QCoolPlayer::slotExit(void)
 {
 	thDecoderFfmpeg.stopImmediately();
+	thBulkVideo.stopImmediately();
 	thUsbMonitor.stopImmediately();
 	
 	thDecoderFfmpeg.wait();
+	thBulkVideo.wait();
 	thUsbMonitor.wait();
+
+	
 	close();
 }
 
@@ -147,7 +156,7 @@ void QCoolPlayer::slotStartOrStopUsbMonitor(void)
 		timerFreshImage.start(1000 / thDecoderFfmpeg.playFrameRate);
 
 		thDecoderFfmpeg.start();
-
+		thBulkVideo.start();
 		thUsbMonitor.start();
 
 		ui.actionStop->setEnabled(true);
@@ -157,28 +166,27 @@ void QCoolPlayer::slotStartOrStopUsbMonitor(void)
 	else
 	{
 		thUsbMonitor.stopImmediately();
+		thBulkVideo.stopImmediately();
 		thDecoderFfmpeg.stopImmediately();
 		
 		timerFreshImage.stop();
 
 		thDecoderFfmpeg.wait();
+		thBulkVideo.wait();
 		thUsbMonitor.wait();
 		vedioWidget.setFrame(QImage("./picture/LOGO3-red.png"));
 	}
 	// start the USB device Monitor
 }
 
-void QCoolPlayer::slotShowUsbStatus(UsbStatus status)
+void QCoolPlayer::slotShowUsbStatus(bool flag)
 {
 
 	QString srtStatus;
-	switch (status)
+	switch (flag)
 	{
-		case NoDeviceFind:  srtStatus = "NoDeviceFind"; break;
-		case ConnectSuccess: srtStatus = "ConnectSuccess"; break;
-		case ErrorInOpen: srtStatus = "ErrorInOpen"; break;
-		case ErrorIncommunication: srtStatus = "ErrorIncommunication";  break;
-
+		case false:  srtStatus = "NoDeviceFind"; break;
+		case true: srtStatus = "ConnectSuccess"; break;
 		default : srtStatus = "ErrorIncommunication"; break;
 	}
 	ui.statusBar->showMessage(srtStatus,5000);

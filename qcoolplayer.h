@@ -23,6 +23,7 @@ private:
 	Ui::QCoolPlayerClass ui;
 	CPThreadDecoderFfmpeg	thDecoderFfmpeg;
 	CPThreadUsbMonitor		thUsbMonitor;
+	CPThreadBulkVideo		thBulkVideo;
 	RenderArea				vedioWidget;
 	QTimer					timerFreshImage;
 public slots:
@@ -32,7 +33,7 @@ public slots:
 	void slotSubWidgetKeyPress(QKeyEvent* ev);
 	void slotSetVedioFullScreen(void);
 	void slotStartOrStopUsbMonitor(void);
-	void slotShowUsbStatus(UsbStatus status);
+	void slotShowUsbStatus(bool flag);
 	void slotUpdateFrameRate(int rate);
 
 protected:
