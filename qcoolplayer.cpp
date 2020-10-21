@@ -14,6 +14,9 @@
 #include "cpThreadSafeQueue.h"
 
 #include "cpUsbMonitor.h"
+#include <windows.h>
+
+//WINBASEAPI VOID WINAPI GetSystemTime(LPSYSTEMTIME lpSystemTime);
 
 threadsafe_queue<QImage*> gListToShow;
 threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
@@ -75,8 +78,8 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	// add the famre rate update
 	connect(&thUsbMonitor, SIGNAL(signalFrameRateUpdate(int)), this, SLOT(slotUpdateFrameRate(int)));
 
-	thDecoderFfmpeg.realTimeMode = true;
-	thDecoderFfmpeg.playFrameRate = 30;  // default
+	thDecoderFfmpeg.realTimeMode = false;
+	thDecoderFfmpeg.playFrameRate = 200;  // default
 
 	//thEncoderToUDP.start();
 }
@@ -99,6 +102,14 @@ void QCoolPlayer::slotExit(void)
 
 void QCoolPlayer::slotShowTheNewImage(void)
 {
+
+	QDateTime current_date_time = QDateTime::currentDateTime();
+	QString current_date = current_date_time.toString("hh:mm:ss.zzz");
+	
+	ui.statusBar->showMessage("Fps : 30   Vedio1List : " + QString::number(gListToShow.size(), 10)
+		+ "    Vedio1UsbList :" + QString::number(gListUsbBulkList_Vedio1.size(), 10) +
+		+"   time:" + current_date, 1000);
+
 	QImage* img = new QImage;
 	if (gListToShow.empty())
 	{
@@ -109,11 +120,16 @@ void QCoolPlayer::slotShowTheNewImage(void)
 
 	vedioWidget.setFrame(*img);
 
-	gListToShow.size();
-	ui.statusBar->showMessage("Fps : 30   Vedio1List : " + QString::number(gListToShow.size(), 10)
-		+ "    Vedio1UsbList :" + QString::number(gListUsbBulkList_Vedio1.size(), 10), 1000);
-
 	delete img;
+	if (gListToShow.size() > 20)
+	{
+		timerFreshImage.setInterval(1000/ thDecoderFfmpeg.playFrameRate);
+	}
+	else if (gListToShow.size() < 5 )
+	{
+		timerFreshImage.setInterval(1000/ thDecoderFfmpeg.playFrameRate);
+	}
+	
 }
 
 void QCoolPlayer::slotSelectRealtime(void)
@@ -121,12 +137,13 @@ void QCoolPlayer::slotSelectRealtime(void)
 	if (ui.actionRealTime->isChecked() == true)
 	{
 		thDecoderFfmpeg.realTimeMode = true;
+		
 	}
 	else
 	{
 		thDecoderFfmpeg.realTimeMode = false;
 	}
-	timerFreshImage.setInterval(1000 / (thDecoderFfmpeg.playFrameRate * 2));
+	
 }
 
 void QCoolPlayer::slotSubWidgetKeyPress(QKeyEvent* ev)
@@ -143,7 +160,7 @@ void QCoolPlayer::slotStartOrStopUsbMonitor(void)
 {
 	if (ui.actionConnect->isChecked() == true)
 	{
-		timerFreshImage.start(1000 / thDecoderFfmpeg.playFrameRate);
+		timerFreshImage.start(33);
 
 		thDecoderFfmpeg.start();
 
@@ -185,7 +202,7 @@ void QCoolPlayer::slotShowUsbStatus(UsbStatus status)
 
 void QCoolPlayer::slotUpdateFrameRate(int rate)
 {
-	timerFreshImage.setInterval(1000 / thDecoderFfmpeg.playFrameRate);
+	timerFreshImage.setInterval(1000/ thDecoderFfmpeg.playFrameRate);
 }
 
 

@@ -269,7 +269,7 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 		}
 
 		if (av_read_frame(pFormatCtx, packet) < 0) {
-			pCPthThis->msleep(100);
+			pCPthThis->msleep(5);
 			continue;
 		}
 
@@ -283,18 +283,20 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 
 			if (got_picture) {
 
-				if (pFormatCtx->streams[videoindex]->r_frame_rate.den != 0)
-				{
-					int tRate = pFormatCtx->streams[videoindex]->r_frame_rate.num / pFormatCtx->streams[videoindex]->r_frame_rate.den;
-					if ((tRate > 0) && (tRate <= 120))
-					{
-						if (pCPthThis->playFrameRate != tRate)
-						{
-							pCPthThis->playFrameRate = tRate;
-							emit pCPthThis->signalFrameRateUpdate(tRate);
-						}
-					}
-				}
+				//if (pFormatCtx->streams[videoindex]->r_frame_rate.den != 0)
+				//{
+				//	int tRate = pFormatCtx->streams[videoindex]->r_frame_rate.num / pFormatCtx->streams[videoindex]->r_frame_rate.den;
+				//	qDebug() << "tRate" << tRate << endl;
+				//	if ((tRate > 0) && (tRate <= 120))
+				//	{
+				//		if (pCPthThis->playFrameRate != tRate)
+				//		{
+				//			pCPthThis->playFrameRate = tRate;
+				//			
+				//			//emit pCPthThis->signalFrameRateUpdate(tRate);
+				//		}
+				//	}
+				//}
 				
 				sws_scale(img_convert_ctx,
 					(const unsigned char* const*)pFrame->data,
@@ -308,11 +310,11 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 				int maxFrameInListToShow;
 				if (pCPthThis->realTimeMode == true)
 				{
-					maxFrameInListToShow = 1;  // just show the last picture;
+					maxFrameInListToShow = 5;  // just show the last picture;
 				}
 				else
 				{
-					maxFrameInListToShow = 5;
+					maxFrameInListToShow = 30;
 				}
 
 				int numret = pList->push(tmpImg, tmpPackegGiveUp, maxFrameInListToShow);

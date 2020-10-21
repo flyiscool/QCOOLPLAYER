@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDataStream>
+#include <QDateTime>
 #include <QThread>
 #include <queue>
 #include <time.h>
@@ -75,7 +76,7 @@ void threadCPUsbMonitor_main(CPThreadUsbMonitor* pCPThreadUsbMonitor)
 	int pktID = 0;
 	UsbBuffPackage* pkgGiveUp = NULL;
 	int cnt_dev2 = libusb_get_device_list(NULL, &pCPthThis->devsList); //get the list of devices
-	qDebug() <<"11111----------------" <<cnt_dev2 << endl;
+
 	while (1){
 
 
