@@ -76,10 +76,10 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	connect(&thUsbMonitor, SIGNAL(signalUsbStatus(UsbStatus)), this, SLOT(slotShowUsbStatus(UsbStatus)));
 
 	// add the famre rate update
-	connect(&thUsbMonitor, SIGNAL(signalFrameRateUpdate(int)), this, SLOT(slotUpdateFrameRate(int)));
+	//connect(&thUsbMonitor, SIGNAL(signalFrameRateUpdate(int)), this, SLOT(slotUpdateFrameRate(int)));
 
 	thDecoderFfmpeg.realTimeMode = false;
-	thDecoderFfmpeg.playFrameRate = 200;  // default
+	thDecoderFfmpeg.playFrameRate = 30;  // default
 
 	//thEncoderToUDP.start();
 }
@@ -121,13 +121,28 @@ void QCoolPlayer::slotShowTheNewImage(void)
 	vedioWidget.setFrame(*img);
 
 	delete img;
-	if (gListToShow.size() > 20)
+	if (gListToShow.size() > 3)
 	{
-		timerFreshImage.setInterval(1000/ thDecoderFfmpeg.playFrameRate);
+		if (ui.actionRealTime->isChecked() == true)
+		{
+			timerFreshImage.setInterval(1000 / (thDecoderFfmpeg.playFrameRate *2 ) - 3);
+		}
+		else
+		{
+			timerFreshImage.setInterval(1000 / thDecoderFfmpeg.playFrameRate - 3);
+		}
+
 	}
-	else if (gListToShow.size() < 5 )
+	else
 	{
-		timerFreshImage.setInterval(1000/ thDecoderFfmpeg.playFrameRate);
+		if (ui.actionRealTime->isChecked() == true)
+		{
+			timerFreshImage.setInterval(1000 / (thDecoderFfmpeg.playFrameRate * 2));
+		}
+		else
+		{
+			timerFreshImage.setInterval(1000 / thDecoderFfmpeg.playFrameRate);
+		}
 	}
 	
 }
@@ -137,13 +152,13 @@ void QCoolPlayer::slotSelectRealtime(void)
 	if (ui.actionRealTime->isChecked() == true)
 	{
 		thDecoderFfmpeg.realTimeMode = true;
-		
+		timerFreshImage.setInterval(1000/ (thDecoderFfmpeg.playFrameRate *2));
 	}
 	else
 	{
 		thDecoderFfmpeg.realTimeMode = false;
+		timerFreshImage.setInterval(1000 / (thDecoderFfmpeg.playFrameRate));
 	}
-	
 }
 
 void QCoolPlayer::slotSubWidgetKeyPress(QKeyEvent* ev)
@@ -202,7 +217,7 @@ void QCoolPlayer::slotShowUsbStatus(UsbStatus status)
 
 void QCoolPlayer::slotUpdateFrameRate(int rate)
 {
-	timerFreshImage.setInterval(1000/ thDecoderFfmpeg.playFrameRate);
+	//timerFreshImage.setInterval(1000/ thDecoderFfmpeg.playFrameRate);
 }
 
 

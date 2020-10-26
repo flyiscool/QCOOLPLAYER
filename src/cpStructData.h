@@ -4,7 +4,7 @@
 
 #include <QMetaType>
 
-#define MAX_USB_BULK_SIZE  32*1024     // 32Kbyte 
+#define MAX_USB_BULK_SIZE  4*1024     // 32Kbyte 
 //#define MAX_USB_BULK_SIZE  1024*1024    // 1Mbyte 
 //#define MAX_USB_BULK_SIZE  512*1024     // 512Kbyte 
 
