@@ -34,4 +34,9 @@ struct UsbBuffPackage
 };
 
 
-
+struct ImgPackage
+{
+    int packageID;
+    double timeStamp;
+    QImage img;
+};

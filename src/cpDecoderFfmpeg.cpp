@@ -27,7 +27,7 @@ extern "C"
 
 static FILE* g_fpVedio = NULL;
 
-extern threadsafe_queue<QImage*> gListToShow;
+extern threadsafe_queue<ImgPackage*> gListToShow;
 
 extern threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
 extern threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
@@ -76,6 +76,7 @@ static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
 			
 			gListUsbBulkList_Vedio1.try_pop(pBuff);
 			delete pBuff;
+			pktID++;
 		}
 		else
 		{
@@ -97,6 +98,7 @@ static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
 
 				gListUsbBulkList_Vedio1.try_pop(pBuff);
 				delete pBuff;
+				pktID++;
 			}
 		}
 
@@ -249,8 +251,9 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 
 	int got_picture;
 
-	threadsafe_queue<QImage*>* pList;
+	threadsafe_queue<ImgPackage*>* pList;
 	pList = &gListToShow;
+	ImgPackage* imgPKG;
 	
 	while (1) {
 		if (!(pCPthThis->IsRun())) {
@@ -303,9 +306,11 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 					pFrame->linesize, 0, pCodecCtx->height,
 					pFrameRGB->data, pFrameRGB->linesize);
 				
-				QImage* tmpImg = new QImage((uchar*)rgb_buffer, pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
+				QImage tmpImg((uchar*)rgb_buffer, pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
+				imgPKG = new ImgPackage;
+				imgPKG->img = tmpImg.copy();
 
-				QImage* tmpPackegGiveUp = NULL;
+				ImgPackage* tmpPackegGiveUp = NULL;
 
 				int maxFrameInListToShow;
 				if (pCPthThis->realTimeMode == true)
@@ -314,10 +319,10 @@ void threadCPDecoderFfmpeg_main(CPThreadDecoderFfmpeg* pCPThreadDecoderFfmpeg)
 				}
 				else
 				{
-					maxFrameInListToShow = 30;
+					maxFrameInListToShow = MAX_FRAME_IN_LIST_TO_SHOW;
 				}
 
-				int numret = pList->push(tmpImg, tmpPackegGiveUp, maxFrameInListToShow);
+				int numret = pList->push(imgPKG, tmpPackegGiveUp, maxFrameInListToShow);
 
 				if (tmpPackegGiveUp != NULL)
 				{

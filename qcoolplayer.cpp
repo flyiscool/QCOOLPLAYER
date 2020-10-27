@@ -18,7 +18,7 @@
 
 //WINBASEAPI VOID WINAPI GetSystemTime(LPSYSTEMTIME lpSystemTime);
 
-threadsafe_queue<QImage*> gListToShow;
+threadsafe_queue<ImgPackage*> gListToShow;
 threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
 threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
 
@@ -110,7 +110,7 @@ void QCoolPlayer::slotShowTheNewImage(void)
 		+ "    Vedio1UsbList :" + QString::number(gListUsbBulkList_Vedio1.size(), 10) +
 		+"   time:" + current_date, 1000);
 
-	QImage* img = new QImage;
+	ImgPackage* img;
 	if (gListToShow.empty())
 	{
 		return;
@@ -118,7 +118,7 @@ void QCoolPlayer::slotShowTheNewImage(void)
 
 	gListToShow.try_pop(img);
 
-	vedioWidget.setFrame(*img);
+	vedioWidget.setFrame(img->img);
 
 	delete img;
 	if (gListToShow.size() > 3)
