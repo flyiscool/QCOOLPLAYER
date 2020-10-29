@@ -22,7 +22,7 @@ extern "C"
 
 #define SIZE_READ_BUFF 32768
 #define MAX_FRAME_TO_SLEEP	5
-#define MAX_FRAME_IN_LIST_TO_SHOW	30
+
 
 
 static FILE* g_fpVedio = NULL;

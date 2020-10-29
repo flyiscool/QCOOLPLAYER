@@ -116,6 +116,16 @@ void QCoolPlayer::slotShowTheNewImage(void)
 		return;
 	}
 
+	if (gListToShow.size() == MAX_FRAME_IN_LIST_TO_SHOW)
+	{
+		for (int i = 0; i < MAX_FRAME_IN_LIST_TO_SHOW - 1; i++)
+		{
+			gListToShow.try_pop(img);
+
+			delete img;
+		}
+	}
+
 	gListToShow.try_pop(img);
 
 	vedioWidget.setFrame(img->img);

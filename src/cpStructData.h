@@ -40,3 +40,6 @@ struct ImgPackage
     double timeStamp;
     QImage img;
 };
+
+
+#define MAX_FRAME_IN_LIST_TO_SHOW	30
