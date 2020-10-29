@@ -22,7 +22,7 @@
 #define ENDPOINT_VEDIO_OUT	0x06 
 #define ENDPOINT_VEDIO_IN	0x86 
 
-#define MAX_BUFFER_IN_VEDIO1_LIST	30
+#define MAX_BUFFER_IN_VEDIO1_LIST	200
 
 extern threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
 extern threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
