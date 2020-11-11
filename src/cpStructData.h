@@ -42,4 +42,4 @@ struct ImgPackage
 };
 
 
-#define MAX_FRAME_IN_LIST_TO_SHOW	30
+#define MAX_FRAME_IN_LIST_TO_SHOW	60
