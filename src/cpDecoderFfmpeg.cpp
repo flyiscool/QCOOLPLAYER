@@ -9,7 +9,7 @@
 #include "cpThread.h"
 
 #include <stdio.h>
-
+#include "stdio.h"
 #include "cpThreadSafeQueue.h"
 
 extern "C"
@@ -34,7 +34,7 @@ extern threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
 
 static	CPThreadDecoderFfmpeg* pthDecoderFfmpeg;
 
-
+extern bool	flagTakeVideo;
 
 //Callback
 static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
@@ -103,6 +103,70 @@ static int readUsbVedio1ListCallBack(void* opaque, uint8_t* buf, int buf_size)
 		}
 
 	} while (buf_size > 0);
+
+	static bool saveflag = false;
+	static QFile* fp = NULL;
+	static bool I_flag = false;
+	if (flagTakeVideo)
+	{
+		if (fp == NULL)
+		{
+			QDateTime current_date_time = QDateTime::currentDateTime();
+			QString current_date = current_date_time.toString("yyyyMMddHHmmss");
+			QString filename = "./";
+			filename.append(current_date);
+			filename.append(".h264");
+			fp = new QFile(filename);
+			fp->open(QIODevice::ReadWrite | QIODevice::Append);
+			I_flag = false;
+		}
+		else
+		{
+			QDataStream t(fp);
+			int j;
+			if (I_flag != true)
+			{
+				for (j = 0; j < need - 4; j++)
+				{
+					if ((buf[j] == 0x00) && (buf[j + 1] == 0x00) && (buf[j + 2] == 0x00) & (buf[j + 3] == 0x01) & (buf[j + 4] == 0x67))
+					{
+						I_flag = true;
+						t.writeRawData((char*)buf + j, need - j);
+						break;
+					}
+				}
+			}
+			else
+			{
+				t.writeRawData((char*)buf, need);
+			}
+			
+			
+
+
+			//fp->write(buf, buf_size);
+			//QByteArray qa2((char *)buf, need);
+
+			//fp->write(qa2);
+			fp->flush();
+
+
+		}
+
+
+	}
+	else
+	{
+		if (fp != NULL)
+		{
+			fp->close();
+			I_flag = false;
+			fp = NULL;
+		}
+	}
+
+
+
 
 	return length;
 }

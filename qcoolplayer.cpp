@@ -22,6 +22,7 @@ threadsafe_queue<ImgPackage*> gListToShow;
 threadsafe_queue<UsbBuffPackage*> gListH264ToUDP;
 threadsafe_queue<UsbBuffPackage*> gListUsbBulkList_Vedio1;
 
+bool	flagTakeVideo;
 
 QCoolPlayer::QCoolPlayer(QWidget *parent)
 	: QMainWindow(parent)
@@ -74,6 +75,12 @@ QCoolPlayer::QCoolPlayer(QWidget *parent)
 	// add the UsbStatus show in statusBar
 	qRegisterMetaType<UsbStatus>("UsbStatus");
 	connect(&thUsbMonitor, SIGNAL(signalUsbStatus(UsbStatus)), this, SLOT(slotShowUsbStatus(UsbStatus)));
+
+
+	// add the usbdevice detect
+	connect(ui.actiontake_picture, SIGNAL(triggered()), this, SLOT(slotTakePicture()));
+
+	connect(ui.actionrecord_video, SIGNAL(triggered()), this, SLOT(slotTakeVideo()));
 
 	// add the famre rate update
 	//connect(&thUsbMonitor, SIGNAL(signalFrameRateUpdate(int)), this, SLOT(slotUpdateFrameRate(int)));
@@ -128,6 +135,23 @@ void QCoolPlayer::slotShowTheNewImage(void)
 
 	gListToShow.try_pop(img);
 
+
+	if (flagTakePic == true)
+	{
+		flagTakePic = false;
+
+		ui.statusBar->showMessage("Take picture success", 5000);
+
+		QString current_date = current_date_time.toString("yyyyMMddHHmmss");
+		QString filename = "./";
+		filename.append(current_date);
+		filename.append(".png");
+
+		img->img.save(filename);
+		
+	}
+	
+
 	vedioWidget.setFrame(img->img);
 
 	delete img;
@@ -139,7 +163,7 @@ void QCoolPlayer::slotShowTheNewImage(void)
 		}
 		else
 		{
-			timerFreshImage.setInterval(1000 / thDecoderFfmpeg.playFrameRate - 3);
+			timerFreshImage.setInterval(1000 / thDecoderFfmpeg.playFrameRate - 7);
 		}
 
 	}
@@ -225,6 +249,24 @@ void QCoolPlayer::slotShowUsbStatus(UsbStatus status)
 	ui.statusBar->showMessage(srtStatus,5000);
 }
 
+
+void QCoolPlayer::slotTakePicture()
+{
+	flagTakePic = true;
+}
+
+void QCoolPlayer::slotTakeVideo()
+{
+	if (ui.actionrecord_video->isChecked() == true)
+	{
+		flagTakeVideo = true;
+	}
+	else
+	{
+		flagTakeVideo = false;
+	}
+
+}
 void QCoolPlayer::slotUpdateFrameRate(int rate)
 {
 	//timerFreshImage.setInterval(1000/ thDecoderFfmpeg.playFrameRate);

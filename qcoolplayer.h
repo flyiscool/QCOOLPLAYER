@@ -25,6 +25,8 @@ private:
 	CPThreadUsbMonitor		thUsbMonitor;
 	RenderArea				vedioWidget;
 	QTimer					timerFreshImage;
+	bool					flagTakePic;
+	
 public slots:
 	void slotExit(void);
 	void slotShowTheNewImage(void);
@@ -34,6 +36,8 @@ public slots:
 	void slotStartOrStopUsbMonitor(void);
 	void slotShowUsbStatus(UsbStatus status);
 	void slotUpdateFrameRate(int rate);
+	void slotTakePicture(void);
+	void slotTakeVideo(void);
 
 protected:
 

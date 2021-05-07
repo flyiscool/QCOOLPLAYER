@@ -29,7 +29,7 @@
      <x>0</x>
      <y>0</y>
      <width>1080</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -53,8 +53,16 @@
     <addaction name="separator"/>
     <addaction name="actionFullScreen_F11"/>
    </widget>
+   <widget class="QMenu" name="menuCamera">
+    <property name="title">
+     <string>Camera</string>
+    </property>
+    <addaction name="actiontake_picture"/>
+    <addaction name="actionrecord_video"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuStatus"/>
+   <addaction name="menuCamera"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpenFile_H264">
@@ -194,6 +202,19 @@
    </property>
    <property name="text">
     <string>Connect</string>
+   </property>
+  </action>
+  <action name="actiontake_picture">
+   <property name="text">
+    <string>Take Picture</string>
+   </property>
+  </action>
+  <action name="actionrecord_video">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Record Video</string>
    </property>
   </action>
  </widget>
